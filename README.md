@@ -1,4 +1,26 @@
 c++ http server framework
+c++ http web 框架
+
+支持多域名网站
+支持多域名ssl 服务端
+
+支持http1.1协议
+支持websocket服务端
+支持同步httpclient get post
+
+框架自带ORM 
+框架自带线程池
+
+框架自带websocket推送
+框架使用asio自带的协程
+
+框架特色是I/O 使用协程池 运行使用线程池
+
+框架支持普通文件gzip
+
+
+---------------------
+
 
 Runtime environment
 asio boost openssl 
@@ -42,7 +64,7 @@ config 目录
 ---------------
 config/gcc.conf 文件
 
-里面内容必须改为g++-11
+里面内容如果是ubuntu20.04 必须改为g++-11 
 
 conifg/server.conf 服务器文件
 
