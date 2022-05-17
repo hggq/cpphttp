@@ -28,7 +28,7 @@ asio boost openssl
 C++ standard request c++20
 
 
-Running desktop Mac OS and Linux
+Running support Mac OS and Linux
 
 mac os request >=big sur  
 ---------
