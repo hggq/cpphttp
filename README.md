@@ -200,4 +200,7 @@ public:
 ```
 
 
+LICENSE
+-----------------
 
+MIT License
