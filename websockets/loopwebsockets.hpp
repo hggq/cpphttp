@@ -1,10 +1,3 @@
-// Copyright 2014 Renato Tegon Forti, Antony Polukhin.
-// Copyright Antony Polukhin, 2015-2022.
-//
-// Distributed under the Boost Software License, Version 1.0.
-// (See accompanying file LICENSE_1_0.txt
-// or copy at http://www.boost.org/LICENSE_1_0.txt)
-
 #include <iostream>
 #include <boost/make_shared.hpp>
 #include <memory>
@@ -18,13 +11,10 @@
 #include "Clientpeer.h"
 #include "Websockets.hpp"
 
-//g++ -shared -fPIC mywebsockets.cpp -o mywebsockets.so
 namespace http {
 
 class loopwebsockets : public websockets_api {
     public:
-//    unsigned int timeloop_num;
-//    unsigned char state;
     unsigned int outcount=0;    
     loopwebsockets(std::weak_ptr<HTTP::clientpeer> p) : websockets_api(4,0,p){}
     ~loopwebsockets() {
@@ -73,15 +63,8 @@ public:
         return std::make_shared<loopwebsockets>(p);
     }
 };
-
-
-// BOOST_DLL_ALIAS(
-//     http::loopwebsockets::create, // <-- this function is exported with...
-//     create_plugin                               // <-- ...this alias name
-// )
-
-} // namespace my_namespace
-//]
-
+ 
+} 
+ 
 
 

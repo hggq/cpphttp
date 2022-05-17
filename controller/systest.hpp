@@ -1,7 +1,6 @@
 #include "orm.h"
 namespace HTTP {
 
-
 std::string home(HTTP::OBJ_VALUE& obj){
     echo("hello world! this use systest inline callback");
     echo("<p><a href=\"/weibo/header\">header</a></p>");
@@ -17,7 +16,6 @@ std::string home(HTTP::OBJ_VALUE& obj){
        }
 
     }
-
     orm::Moduleauth  mbc;
     mbc.where("mid>",0).fetch();
     echo(mbc.getstrCol("name"));
@@ -27,15 +25,9 @@ std::string home(HTTP::OBJ_VALUE& obj){
          echo("<p>"+bb+"</p>");
      }
      obj["name"]="test inline callback";
-    viewshow("about/image");
+    viewshow("about/header");
     //send_file("viewmodule.html");
    return "";
 }
-
-//static methodautoload *methodautoloadmap =methodautoload::instance();
-
-//  methodautoload* methodptr = methodautoload::instance();
-// methodptr->addmapmethod("systest/home");
-//_SHOW(home)
 
 }
