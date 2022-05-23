@@ -58,6 +58,22 @@ public:
 
     std::string getlocalip();
     unsigned short getlocalport();
+
+       clientpeer& operator<<(HTTP::OBJ_VALUE &a);
+             clientpeer& operator<<(std::string &&a);
+                 clientpeer& operator<<(std::string &a);
+                 clientpeer& operator<<(std::string_view a);
+                clientpeer& operator<<(char const *a);
+                clientpeer& operator<<(float a);
+                clientpeer& operator<<(long long a);
+                 clientpeer& operator<<(int a);
+                 clientpeer& operator<<(short a);
+                clientpeer& operator<<(unsigned long long a);
+                 clientpeer& operator<<(unsigned int a);
+                clientpeer& operator<<(double a);
+                template<typename T>
+                clientpeer& operator<<(T &a);
+
 public:
   std::list<asio::ssl::stream<asio::ip::tcp::socket>> https_socket;
   std::list<asio::ip::tcp::socket> http_socket;

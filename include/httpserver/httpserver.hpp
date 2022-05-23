@@ -85,6 +85,7 @@
 #include "reghttpmethod.hpp"
 #include "Websockets.hpp"
 #include "regwebsocketmethod.hpp"
+#include "httpsocommonapi.h" 
 
 using asio::awaitable;
 using asio::co_spawn;
@@ -107,8 +108,10 @@ std::string serverconfigpath;
 std::map<std::string,std::map<std::string,std::string>>  _serverconfig;
 
 
+
 bool _siteusehtmlchache;
 unsigned int _siteusehtmlchachetime;
+
 
 
   std::string get_password(){
@@ -411,12 +414,17 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
   HTTP::_threadclientpeer=peer.get();
   peer->globalconfig=&_serverconfig;
   std::thread::id thread_id=std::this_thread::get_id();
-
- 
+    std::cout<<"thread_id1"<<std::this_thread::get_id()<<std::endl;
+   clientapi& pnn =clientapi::get();
+    // pnn.vobj["in"]=peer->remote_ip;
+    // pnn.output.clear();
+  
    if(!peer->header->getfinish()){
         peer->send(400,"Request bad");
         return;
     }
+    //  pnn.output="sssssssss";
+    //  std::cout<<"clientapi address: "<<std::hex<<&pnn.output<<std::endl;
    unsigned int offsetnum=0;
     for(;offsetnum<peer->header->host.size();offsetnum++){
           threadlist[thread_id].url[offsetnum]=peer->header->host[offsetnum];
@@ -485,6 +493,8 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                                 if(sitecontent.empty()){
                                                     if(HTTP::vobj.as_int()==0){
                                                         peer->send(200,HTTP::_output);
+                                                        //peer->send(200,pnn.output);
+                                                        
                                                     }
                                                 }else{
                                                     peer->send(200,sitecontent);
@@ -513,6 +523,7 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                                 if(sitecontent.empty()){
                                                     if(HTTP::vobj.as_int()==0){
                                                                     peer->send(200,HTTP::_output);
+                                                                    //peer->send(200,pnn.output);
                                                     }
                                                 }else{
                                                     peer->send(200,sitecontent);
@@ -535,6 +546,7 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                                 if(sitecontent.empty()){
                                                     if(HTTP::vobj.as_int()==0){
                                                         peer->send(200,HTTP::_output);
+                                                        //peer->send(200,pnn.output);
                                                     }
                                                 }else{
                                                     peer->send(200,sitecontent);
@@ -563,6 +575,7 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                                 if(sitecontent.empty()){
                                                     if(HTTP::vobj.as_int()==0){
                                                                     peer->send(200,HTTP::_output);
+                                                                    //peer->send(200,pnn.output);
                                                     }
                                                 }else{
                                                     peer->send(200,sitecontent);
@@ -604,7 +617,8 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                 visttype=7;
                             }
                         }
-                       
+                         
+                        
                         HTTP::_output.clear();  
 
                          if(peer->header->state.keeplive&&peer->keeplive){
@@ -968,6 +982,47 @@ public:
     _inithttpmethodregto(methodcallback);
     ctxmar* ctxptr = ctxmar::instance();
     ctxptr->setconfigpath(serverconfigpath);
+
+     clientapi* pn =clientapi::instance();
+ 
+            // pn->_render["view"]=loadview;
+            // pn->_render["viewnotobj"]=loadviewnotcall;
+            // pn->_render["viewfetchnotobj"]=loadviewfetchnotcall;
+            // pn->_render["viewobj"]=loadviewobjcall;
+      
+            // pn->_render["router"]=loadcontrol;
+            // pn->_render["jsonsend"]=sendjsoncall;
+            // pn->_render["send"]=modulesenddata;
+            
+            // pn->_echocallbackand["echo"]=echoassignand; 
+
+            // pn->_echocallback["echo"]=echoassign;
+            // pn->_echocallback["echoflush"]=echo_flush;  
+            // pn->_echocallback["sendfile"]=send_file;  
+
+             pn->api_loadview=loadview;
+             pn->api_loadviewnotcall=loadviewnotcall;
+             pn->api_loadviewfetchnotcall=loadviewfetchnotcall;
+             pn->api_loadviewobjcall=loadviewobjcall;
+
+             pn->api_loadcontrol=loadcontrol;
+             pn->api_sendjsoncall=sendjsoncall;
+             pn->api_modulesenddata=modulesenddata;
+
+             pn->api_echoassignand=echoassignand; 
+
+             pn->api_echoassign=echoassign;
+             pn->api_echo_flush=echo_flush; 
+             pn->api_send_file=send_file;  
+
+ 
+           pn->api_mysqlselect=domysqlexecute;
+           pn->api_mysqledit=domysqleditexecute;
+
+           pn->api_mysqlcommit=domysqlcommit;  
+
+ 
+
     for(;;){
         if(reloadmysql){
              loadmysqlconfig();

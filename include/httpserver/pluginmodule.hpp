@@ -17,6 +17,8 @@
 // #include "mysqlpool.h"
 #include "Clientpeer.h"
 #include "mysqlproxyfun.h"
+#include "httpsocommonapi.h" 
+
 namespace HTTP {
  
 typedef boost::function<void()> callback_t;
@@ -205,50 +207,48 @@ method_callback_t sendjsoncall(std::string modulemethod){
 
         }
 void initcallbackmap(){
-    if(rendercallback.size()==0){
-            rendercallback["view"]=loadview;
-            rendercallback["viewnotobj"]=loadviewnotcall;
-            rendercallback["viewfetchnotobj"]=loadviewfetchnotcall;
-            rendercallback["viewobj"]=loadviewobjcall;
+    // if(rendercallback.size()==0){
+    //         rendercallback["view"]=loadview;
+    //         rendercallback["viewnotobj"]=loadviewnotcall;
+    //         rendercallback["viewfetchnotobj"]=loadviewfetchnotcall;
+    //         rendercallback["viewobj"]=loadviewobjcall;
       
-            rendercallback["router"]=loadcontrol;
-            rendercallback["jsonsend"]=sendjsoncall;
-            rendercallback["send"]=modulesenddata;
-        }
-    if(_renderechocallback.size()==0)
-    {
-          _renderechocallback["echo"]=echoassign;
-          _renderechocallback["echoflush"]=echo_flush;  
-          _renderechocallback["sendfile"]=send_file;  
-    } 
-    if(_renderechocallbackand.size()==0)
-    {
-          _renderechocallbackand["echo"]=echoassignand;
-    }     
+    //         rendercallback["router"]=loadcontrol;
+    //         rendercallback["jsonsend"]=sendjsoncall;
+    //         rendercallback["send"]=modulesenddata;
+    //     }
+    // if(_renderechocallback.size()==0)
+    // {
+    //       _renderechocallback["echo"]=echoassign;
+    //       _renderechocallback["echoflush"]=echo_flush;  
+    //       _renderechocallback["sendfile"]=send_file;  
+    // } 
+    // if(_renderechocallbackand.size()==0)
+    // {
+    //       _renderechocallbackand["echo"]=echoassignand;
+    // }     
 
-    if(_mysqlselectcallback.size()==0){
-        _mysqlselectcallback["mysql"]=domysqlexecute;
-    }
-    if(_mysqlplugineditcallback.size()==0){
-        _mysqlplugineditcallback["mysql"]=domysqleditexecute;
-    }
-    if(_mysqlplugicommitcall.size()==0){
-        _mysqlplugicommitcall["mysql"]=domysqlcommit;
-    }
+    // if(_mysqlselectcallback.size()==0){
+    //     _mysqlselectcallback["mysql"]=domysqlexecute;
+    // }
+    // if(_mysqlplugineditcallback.size()==0){
+    //     _mysqlplugineditcallback["mysql"]=domysqleditexecute;
+    // }
+    // if(_mysqlplugicommitcall.size()==0){
+    //     _mysqlplugicommitcall["mysql"]=domysqlcommit;
+    // }
 }
 method_callback_t viewmodulecreate(std::string module,std::string name){
         boost::dll::fs::path shared_library_path =module;
 
-         std::cout<<shared_library_path.string()<<" method:"<<name<<std::endl;
          try {
-                    if(boost::dll::fs::exists(shared_library_path)){
-
+                    if(boost::dll::fs::exists(shared_library_path)){       
                              boost::dll::shared_library lib(shared_library_path); 
-                            if(lib.has("_initview"))  
+                             if(lib.has("_setclientapi"))  
                             {
-
-                                boost::function<void(modulemethod_callback_t)> _initview= boost::dll::import_alias<void(modulemethod_callback_t)>(shared_library_path, "_initview");
-                                _initview(&loadview);
+                              boost::function<HTTP::clientapi*(HTTP::clientapi*)> setclientapicall= boost::dll::import_alias<HTTP::clientapi*(HTTP::clientapi*)>(shared_library_path, "_setclientapi"); 
+                                    HTTP::clientapi* pn =HTTP::clientapi::instance();
+                                    setclientapicall(pn);
                             }
                             if(lib.has(name))  
                             {
@@ -282,105 +282,23 @@ method_callback_t controlmodulecreate(std::string module,std::string name,size_t
                 sharedmethodchache[t].emplace_back(name);
             }
          try {
-                    std::call_once(rendercallback_flag,initcallbackmap);
-                     
-                    if(boost::dll::fs::exists(shared_library_path)){
+                   // std::call_once(rendercallback_flag,initcallbackmap);
+                    
+                    if(boost::dll::fs::exists(shared_library_path)){  
                             boost::dll::shared_library lib(shared_library_path); 
-                             boost::function<unsigned int (std::map<std::string,modulemethod_callback_t>&)> _initcallback;
-                             boost::function<unsigned int (std::map<std::string,echo_callbackand_t>&)> _initcallandback;
-                             boost::function<unsigned int (std::map<std::string,echo_callback_t>&)> _initcallvoidback;
-                             boost::function<unsigned int (std::map<std::string,mysql_callbackand_t>&)> _initmysqlcallback;
-                             boost::function<unsigned int (std::map<std::string,mysql_callbacksql_t>&)> _initmysqleditcallback;
-                             boost::function<unsigned int (std::map<std::string,mysql_callbacksql_rollback>&)> _initmysqlcommitcallback;
-                            if(lib.has("_initcallback"))  
-                            {                  
-                              _initcallback= boost::dll::import_alias<unsigned int (std::map<std::string,modulemethod_callback_t>&)>(shared_library_path, "_initcallback");                    
-
-                             unsigned int  controlversion=_initcallback(rendercallback);
-                             //_initcallback.clear();
-                            }
-                            if(lib.has("_initandcall"))  
-                            {                  
-                              _initcallandback= boost::dll::import_alias<unsigned int (std::map<std::string,echo_callbackand_t>&)>(shared_library_path, "_initandcall");                    
-
-                             unsigned int  controlversion=_initcallandback(_renderechocallbackand);
-                             //_initcallandback.clear();
-                            }
-                             if(lib.has("_initvoidcall"))  
+                            if(lib.has("_setclientapi"))  
                             {
-                             _initcallvoidback= boost::dll::import_alias<unsigned int (std::map<std::string,echo_callback_t>&)>(shared_library_path, "_initvoidcall");                    
-
-                             unsigned int  controlversion=_initcallvoidback(_renderechocallback);
-                             //_initcallvoidback.clear();
-                            }
-                             if(lib.has("_initmysqlplugin"))  
-                            {
-                              _initmysqlcallback= boost::dll::import_alias<unsigned int (std::map<std::string,mysql_callbackand_t>&)>(shared_library_path, "_initmysqlplugin");                    
-
-                             unsigned int  controlversion=_initmysqlcallback(_mysqlselectcallback);
-                             //_initcallvoidback.clear();
-                            }
-
-                               if(lib.has("_initmysqleditplugin"))  
-                            {
-                  
-                              _initmysqleditcallback= boost::dll::import_alias<unsigned int (std::map<std::string,mysql_callbacksql_t>&)>(shared_library_path, "_initmysqleditplugin");                    
-
-                             unsigned int  controlversion=_initmysqleditcallback(_mysqlplugineditcallback);
-                             //_initcallvoidback.clear();
-                            }
-
-                              if(lib.has("_initmysqlcommitplugin"))  
-                            {
-                 
-                              _initmysqlcommitcallback= boost::dll::import_alias<unsigned int (std::map<std::string,mysql_callbacksql_rollback>&)>(shared_library_path, "_initmysqlcommitplugin");                    
-
-                             unsigned int  controlversion=_initmysqlcommitcallback(_mysqlplugicommitcall);
-                             //_initcallvoidback.clear();
+                              boost::function<HTTP::clientapi*(HTTP::clientapi*)> setclientapicall= boost::dll::import_alias<HTTP::clientapi*(HTTP::clientapi*)>(shared_library_path, "_setclientapi"); 
+                                    HTTP::clientapi* pn =HTTP::clientapi::instance();
+                                    setclientapicall(pn);
                             }
 
                              if(lib.has(name))  
                             {
                                controlpathchache[tt]=std::move(boost::dll::import_alias<std::string(HTTP::OBJ_VALUE&)>(shared_library_path, name ));
-                               if(_initcallback){
-                                   _initcallback.clear();
-                               } 
-                                if(_initcallandback){
-                                   _initcallandback.clear();
-                               } 
-                                if(_initcallvoidback){
-                                   _initcallvoidback.clear();
-                               } 
-                                if(_initmysqlcallback){
-                                   _initmysqlcallback.clear();
-                               }    
-                               if(_initmysqleditcallback){
-                                   _initmysqleditcallback.clear();
-                               }   
-                               if(_initmysqlcommitcallback){
-                                   _initmysqlcommitcallback.clear();
-                               } 
                                return controlpathchache[tt]; 
                             }else if(lib.has("_init404")){
                                 controlpathchache[tt]=std::move(boost::dll::import_alias<std::string(HTTP::OBJ_VALUE&)>(shared_library_path, "_init404" ));
-                               if(_initcallback){
-                                   _initcallback.clear();
-                               } 
-                                if(_initcallandback){
-                                   _initcallandback.clear();
-                               } 
-                                if(_initcallvoidback){
-                                   _initcallvoidback.clear();
-                               } 
-                                if(_initmysqlcallback){
-                                   _initmysqlcallback.clear();
-                               }    
-                               if(_initmysqleditcallback){
-                                   _initmysqleditcallback.clear();
-                               }    
-                                if(_initmysqlcommitcallback){
-                                   _initmysqlcommitcallback.clear();
-                               } 
                                return controlpathchache[tt]; 
                             }
                                    
@@ -474,7 +392,6 @@ method_callback_t loadcontrol(std::string modulemethod){
         }        
         
         if(controlpathchache.find(t)==controlpathchache.end()){
-                //std::cout<<" t:"<<t<<std::endl;
                 std::unique_lock<std::mutex> lock(loadcontrolmtx);
                 if(controlpathchache.find(t)==controlpathchache.end()){
                 controlpathchache[t]=controlmodulecreate(path,hash,t);  
@@ -516,7 +433,7 @@ method_callback_t loadview(std::string modulemethod){
                 hash.clear();
             }
         }
-       
+        
         if(hash.size()>0){
             path=hash;
         }else{
@@ -545,13 +462,12 @@ method_callback_t loadview(std::string modulemethod){
         //     path.append(modulemethod);
         // }
         // path.append(".so");
-
+ 
         hash.clear();  
         hash.append(modulemethod);
         hash.append(path);
         size_t t=std::hash<std::string>{}(hash);
         if(sharedpathchache.find(t)==sharedpathchache.end()){
-
                 std::unique_lock<std::mutex> lock(loadviewmtx);
                 if(sharedpathchache.find(t)==sharedpathchache.end()){
                     
@@ -564,8 +480,7 @@ method_callback_t loadview(std::string modulemethod){
 
 }
 method_callback_t loadviewnotcall(std::string modulemethod){
-  
-        _output.append(loadview(std::move(modulemethod))(vobj));
+        _output.append(loadview(modulemethod)(vobj));
         return httpempty;
 
 }

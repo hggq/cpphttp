@@ -28,6 +28,62 @@
 // #include "common_functions.h"
 namespace HTTP { 
         namespace fs = std::filesystem;
+
+   clientpeer& clientpeer::operator<<(HTTP::OBJ_VALUE &a){
+                    _output.append(a.to_string());
+                    return *this;
+                }
+             clientpeer& clientpeer::operator<<(std::string &&a){
+                    _output.append(a);
+                    return *this;
+                }
+                 clientpeer& clientpeer::operator<<(std::string &a){
+                    _output.append(a);
+                    return *this;
+                }
+                 clientpeer& clientpeer::operator<<(std::string_view a){
+                    _output.append(a);
+                    return *this;
+                }
+                clientpeer& clientpeer::operator<<(char const *a){
+                    _output.append(a);
+                    return *this;
+                }
+                clientpeer& clientpeer::operator<<(float a){
+                    _output.append(std::to_string(a));
+                    return *this;
+                } 
+                clientpeer& clientpeer::operator<<(long long a){
+                    _output.append(std::to_string(a));
+                    return *this;
+                }
+                 clientpeer& clientpeer::operator<<(int a){
+                    _output.append(std::to_string(a));
+                    return *this;
+                }
+                 clientpeer& clientpeer::operator<<(short a){
+                    _output.append(std::to_string(a));
+                    return *this;
+                }
+                clientpeer& clientpeer::operator<<(unsigned long long a){
+                    _output.append(std::to_string(a));
+                    return *this;
+                }
+                 clientpeer& clientpeer::operator<<(unsigned int a){
+                    _output.append(std::to_string(a));
+                    return *this;
+                }
+                clientpeer& clientpeer::operator<<(double a){
+               
+                    _output.append(std::to_string(a));
+                    return *this;
+                }
+                template<typename T>
+                clientpeer& clientpeer::operator<<(T &a){
+                    _output.append(a.to_string());
+                    return *this;
+                }
+
  std::string clientpeer::getremoteip(){
        if(isssl){
            remote_ip=https_socket.front().lowest_layer().remote_endpoint().address().to_string();
