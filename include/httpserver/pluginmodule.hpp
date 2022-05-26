@@ -28,8 +28,10 @@ typedef boost::function<mysqlx::RowResult(std::string&,size_t)> mysql_callbackan
 typedef boost::function<mysqlx::SqlResult(std::string&,size_t)> mysql_callbacksql_t;
 typedef boost::function<bool(std::list<std::string>&,size_t)> mysql_callbacksql_rollback;
 typedef boost::function<std::string(HTTP::OBJ_VALUE&)> method_callback_t;
+typedef boost::function<std::string(HTTP::clientpeer*)> www_method_call;
 typedef boost::function<boost::function<std::string(HTTP::OBJ_VALUE&)>(std::string)> modulemethod_callback_t;
- 
+typedef boost::function<boost::function<std::string(HTTP::clientpeer*)>(std::string)> module_method_call;
+
 std::string siteviewpath="module/view/";
 std::string sitecontrolpath="module/controller/";
 std::map<std::size_t,std::vector<std::string>>  sharedmethodchache;
@@ -106,6 +108,9 @@ void echo_flush(std::string name){
    // std::cout<<"mb:"<<name<<std::endl;
     _output.append(std::move(name));
     //now send data
+}
+HTTP::clientpeer* getpeer(){
+    return _threadclientpeer;
 }
 void echoassignand(std::string& name){
    // std::cout<<"mb:"<<name<<std::endl;
@@ -723,69 +728,32 @@ void echo_json(HTTP::OBJ_VALUE &obj){
    }  
 
 void echo(std::string &b){
-     try {
-       echoassignand(b);
-    }catch (std::exception& e)  
-    {  
-       // std::cout << e.what() << std::endl;  
-    }  
+_output.append(b);  
      
 }
 void echo(int b){
-     try {
-      echoassign(std::move(std::to_string(b)));
-    }catch (std::exception& e)  
-    {  
-       // std::cout << e.what() << std::endl;  
-    }  
+_output.append(std::to_string(b));  
      
 }
 void echo(unsigned int b){
-     try {
-       echoassign(std::move(std::to_string(b)));
-    }catch (std::exception& e)  
-    {  
-       // std::cout << e.what() << std::endl;  
-    }  
-     
+_output.append(std::to_string(b));  
 }
 void echo(long long b){
-     try {
-       echoassign(std::move(std::to_string(b)));
-    }catch (std::exception& e)  
-    {  
-       // std::cout << e.what() << std::endl;  
-    }  
+_output.append(std::to_string(b));  
      
 }
 void echo(unsigned long long b){
-     try {
-       echoassign(std::move(std::to_string(b)));
-    }catch (std::exception& e)  
-    {  
-       // std::cout << e.what() << std::endl;  
-    }  
-     
+     _output.append(std::to_string(b));     
 }
 void echo(std::string &&b){
-     
-    try {
-           echoassign(std::move(b));
-    }catch (std::exception& e)  
-    {  
-       // std::cout << e.what() << std::endl;  
-    }  
+      _output.append(b);
 }
 void echo(HTTP::OBJ_VALUE &b){
-     
-    try {
-           echoassign(b.to_string());
-    }catch (std::exception& e)  
-    {  
-       // std::cout << e.what() << std::endl;  
-    }  
+     _output.append(b.to_string());
 }
- 
+std::string& getoutput(){
+     return _output;
+} 
 
 }
 #endif

@@ -11,7 +11,7 @@ namespace HTTP {
  
 
 
-std::string menubar(HTTP::clientpeer *peer,HTTP::OBJ_VALUE& obj){
+std::string menubar(HTTP::OBJ_VALUE& obj){
      obj["home"]="/";
      obj["news"]="/news";
      obj["about"]="/about";
@@ -25,11 +25,19 @@ std::string menubar(HTTP::clientpeer *peer,HTTP::OBJ_VALUE& obj){
      return "";
 } 
 
-std::string home(HTTP::clientpeer *peer, HTTP::OBJ_VALUE& obj){
-    echo("hello world!  weibo so file");
-    echo("<p><a href=\"/weibo/header\">header</a></p>");
-    echo("<p><a href=\"/weibo/hello\">content</a></p>");
-    echo(peer->remote_ip);
+std::string home( HTTP::OBJ_VALUE& obj){
+    HTTP::clientpeer *peer= clientapi::get().getpeer();
+    auto output=clientapi::get();  
+
+    output<<"hello world!  weibo so file";
+    output<<"<p><a href=\"/weibo/header\">header</a></p>";
+    output<<"<p><a href=\"/weibo/hello\">content</a></p>";
+
+   
+   //  echo(peer->remote_ip);
+   //  echo(peer->remote_port);
+     output<<peer->remote_ip;
+     output<<peer->remote_port;
     orm::sms::News  comnews;
 
     comnews.where("newsid>",1).order("newsid  DESC").limit(10).fetch();
@@ -160,7 +168,7 @@ std::string home(HTTP::clientpeer *peer, HTTP::OBJ_VALUE& obj){
     viewshow("about/show");
      return "";
 } 
-std::string hello(HTTP::clientpeer *peer,HTTP::OBJ_VALUE& obj){
+std::string hello(HTTP::OBJ_VALUE& obj){
     //  std::cout<<"\r\nhello world!ppppppppeeee";
 
    // echo="hello world%%%5";

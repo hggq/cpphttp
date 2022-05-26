@@ -46,7 +46,10 @@ public:
   void send(const char *data,int sendsize);
   void send(unsigned int statecode,std::string &str);
   void send( int statecode,std::string &&);
-  void sendhttpheader(unsigned int ,unsigned long long );
+  void sendheader(unsigned int ,unsigned long long );
+  void addheader(std::string_view);
+  void addheader(const char *);
+  void addheader(std::string,std::string);
   std::string makeetag();
   std::string writetime_tostring(fs::file_time_type const& ftime);
   void getfileinfo();
@@ -74,13 +77,18 @@ public:
                 template<typename T>
                 clientpeer& operator<<(T &a);
 
+  void parse_session();
+  void save_session();
+  void clear_session();
+  void set_cookie(std::string,std::string,unsigned long,std::string,std::string,bool,bool);
 public:
   std::list<asio::ssl::stream<asio::ip::tcp::socket>> https_socket;
   std::list<asio::ip::tcp::socket> http_socket;
+  std::list<std::string> headerlists;
   std::mutex writemutex;
   unsigned char httptype=0;
   bool isssl = false;
-  bool isrepeat=false;
+  bool issendheader=false;
   int  readnum=0;
   unsigned char _data[2051]={0x00};
   std::unique_ptr<WebSocketparse> ws;
@@ -95,7 +103,9 @@ public:
   unsigned long long chachefiletime=10;
   std::string _output;
   HTTP::OBJ_VALUE vobj;
-  
+  HTTP::OBJ_VALUE session;
+  unsigned long long  sessionfile_time=0;
+  Cookie cookie;
   std::list<std::future<int>> loopresults;
   std::promise<int> looprunpromise;
   

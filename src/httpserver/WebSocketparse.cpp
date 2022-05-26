@@ -35,8 +35,6 @@ unsigned long long WebSocketparse::getprocssdata(unsigned char *inputdata,unsign
                             ispack=false;
                     }
                     // unsigned char mask_key[4];
-                    std::cout<<"-----wsstart----"<<std::endl;    
-                    std::cout<<"mask:"<<std::to_string(mask)<<std::endl;
                     if(fixlength<126){
                          contentlength=fixlength;
                     }else if(fixlength==126){
@@ -61,17 +59,7 @@ unsigned long long WebSocketparse::getprocssdata(unsigned char *inputdata,unsign
                         pos+=4;
                     }
                     contentoffset=buffersize-pos;
-                    std::cout<<"datalength:"<<std::to_string(fixlength)<<std::endl;
-                  
-
                     ispack=true;
-
-
-                  
-                        std::cout << "contentlength:" << std::to_string(contentlength)
-                                  
-                                  << " contentoffset:" << std::to_string(contentoffset)
-                                  << std::endl;
                                   
                         if(contentlength>2097152){
                           isfile=true;
@@ -134,10 +122,8 @@ unsigned long long WebSocketparse::getprocssdata(unsigned char *inputdata,unsign
 }
 void WebSocketparse::parsedata(unsigned char *inputdata,unsigned int buffersize)
 {
-    std::cout<<"-----wspross----"<<std::endl; 
+ 
      contentoffset += buffersize;
-                        std::cout << "contentoffset:" << std::to_string(contentoffset)
-                                  << " " << contentlength << std::endl;
 
                          if(isfile&&rawfile!=NULL){
                              

@@ -1,4 +1,5 @@
 
+#include <algorithm>
 #include <asio.hpp>
 #include <asio/ssl.hpp>
 #include <asio/co_spawn.hpp>
@@ -7,6 +8,7 @@
 #include <asio/ip/tcp.hpp>
 #include <asio/signal_set.hpp>
 #include <asio/write.hpp>
+#include <cstdio>
 #include <list>
 #include <map>
 #include <condition_variable>
@@ -15,6 +17,8 @@
 #include <string>
 #include <thread>
 #include <memory>
+#include <cstdio> 
+#include <sys/fcntl.h>
 
 #ifndef WIN32
 #include <unistd.h>
@@ -28,7 +32,205 @@
 // #include "common_functions.h"
 namespace HTTP { 
         namespace fs = std::filesystem;
+        void clientpeer::set_cookie(std::string key,std::string val,unsigned long exptime=0,std::string domain="",std::string path="",bool secure=false,bool httponly=false){
+             cookie.set(key,val,exptime,domain,path,secure,httponly);
+             header->cookie.set(key,val,exptime,domain,path,secure,httponly);
+        }
 
+    void clientpeer::addheader(std::string_view str){
+            headerlists.emplace_back(str);
+    }
+    void clientpeer::addheader(const char * str){
+             headerlists.emplace_back(str);
+   }
+   void clientpeer::addheader(std::string vkey,std::string vstr){
+         vkey.append(": ");
+         vkey.append(vstr);
+         headerlists.emplace_back(vkey);
+   }
+
+    void clientpeer::parse_session(){
+         if(header->cookie.check("CPPSESSID")){
+               std::string root_path;
+
+               std::map<std::string,std::map<std::string,std::string>> &config=*globalconfig;
+                    root_path.clear();
+
+                            if(config.find("default")!=config.end()){
+                                     root_path=config["default"]["serverpath"];
+                                     if(root_path.size()>0&&root_path.back()!='/'){
+                                          root_path.push_back('/');
+                                     }
+                                     root_path.append("tmp/");
+                            }else{
+                                root_path="tmp/";
+                            }
+
+               std::string sessionfile= header->cookie.get("CPPSESSID");
+               if(sessionfile.empty()){
+                   return;
+               }
+               sessionfile.append("_sess");
+               root_path.append(sessionfile);
+
+                struct stat sessfileinfo;
+                unsigned long long  tempsesstime=0;
+                 memset(&sessfileinfo,0,sizeof(sessfileinfo));
+                         if(stat(root_path.c_str(),&sessfileinfo)==0){
+
+                                tempsesstime =   sessfileinfo.st_mtime;
+                                
+                         }
+
+                if(tempsesstime>0&&tempsesstime==sessionfile_time){
+                     return;         
+                }
+
+              int fd = open(root_path.c_str(), O_RDONLY);
+                if (fd == -1) {
+                    //perror("open");
+                    return;
+                }  
+
+                 // 锁住整个文件
+                struct flock lock = {};
+                lock.l_type = F_RDLCK;
+                lock.l_whence = 0;
+                lock.l_start = 0;
+                lock.l_len = 0;
+
+                lock.l_pid =0;
+
+                if (fcntl(fd, F_SETLKW, &lock) == -1) {
+                    return;
+                }
+
+                int filelen= lseek(fd,0L,SEEK_END);  
+                sessionfile.clear();
+                sessionfile.resize(filelen);
+
+                 int  readsize= read(fd,sessionfile.data(),filelen);
+
+                if(readsize>0){
+                    sessionfile.resize(readsize);
+                    session.fromjson(sessionfile);
+                }
+
+                lock.l_type = F_UNLCK;
+                if (fcntl(fd, F_SETLKW, &lock) == -1) {
+                    
+                    return;
+                }
+                close(fd);
+                sessionfile_time=tempsesstime;
+        }
+    }
+     void clientpeer::save_session(){
+         std::string sessionfile;
+         if(header->cookie.check("CPPSESSID")){
+              sessionfile= header->cookie.get("CPPSESSID");
+               
+          }
+          if(sessionfile.empty()){
+                sessionfile=remote_ip+std::to_string(remote_port)+std::to_string(timeid())+std::to_string(rand()); 
+                sessionfile=std::to_string(std::hash<std::string>{}(sessionfile));
+                cookie.set("CPPSESSID",sessionfile,7200);
+                header->cookie.set("CPPSESSID",sessionfile,7200);
+           }   
+               std::string root_path;
+
+               std::map<std::string,std::map<std::string,std::string>> &config=*globalconfig;
+                    root_path.clear();
+
+                            if(config.find("default")!=config.end()){
+                                     root_path=config["default"]["serverpath"];
+                                     if(root_path.size()>0&&root_path.back()!='/'){
+                                          root_path.push_back('/');
+                                     }
+                                     root_path.append("tmp/");
+                            }else{
+                                root_path="tmp/";
+                            }
+
+              
+               sessionfile.append("_sess");
+               root_path.append(sessionfile);
+               
+              int fd = open(root_path.c_str(), O_RDWR|O_CREAT,0666);
+                if (fd == -1) {
+                    //perror("open");
+                    return;
+                }  
+                 
+                 // 锁住整个文件
+                struct flock lock = {};
+                lock.l_type = F_WRLCK;
+                lock.l_whence = 0;
+                lock.l_start = 0;
+                lock.l_len = 0;
+
+                lock.l_pid =0;
+
+                if (fcntl(fd, F_SETLKW, &lock) == -1) {
+                    return;
+                }
+
+                sessionfile=session.tojson();
+                 
+                write(fd,sessionfile.data(),sessionfile.size());
+
+                lock.l_type = F_UNLCK;
+                if (fcntl(fd, F_SETLKW, &lock) == -1) {
+                    
+                    return;
+                }
+                close(fd);
+                sessionfile_time=timeid();
+        
+    }
+   void clientpeer::clear_session(){
+        if(header->cookie.check("CPPSESSID")){
+               std::string root_path;
+
+               std::map<std::string,std::map<std::string,std::string>> &config=*globalconfig;
+                    root_path.clear();
+
+                            if(config.find("default")!=config.end()){
+                                     root_path=config["default"]["serverpath"];
+                                     if(root_path.size()>0&&root_path.back()!='/'){
+                                          root_path.push_back('/');
+                                     }
+                                     root_path.append("tmp/");
+                            }else{
+                                root_path="tmp/";
+                            }
+
+               std::string sessionfile= header->cookie.get("CPPSESSID");
+               if(sessionfile.empty()){
+                   return;
+               }
+               sessionfile.append("_sess");
+               root_path.append(sessionfile);
+
+                struct stat sessfileinfo;
+                unsigned long long  tempsesstime=0;
+                 memset(&sessfileinfo,0,sizeof(sessfileinfo));
+                         if(stat(root_path.c_str(),&sessfileinfo)==0){
+
+                              if(sessfileinfo.st_mode & S_IFREG){
+                                    remove(root_path.c_str());
+                                    sessionfile_time=0;
+                                    session.clear();
+                              }
+                                
+                         }else{
+                             return;
+                         }
+
+            
+
+        }
+   } 
    clientpeer& clientpeer::operator<<(HTTP::OBJ_VALUE &a){
                     _output.append(a.to_string());
                     return *this;
@@ -153,6 +355,25 @@ namespace HTTP {
                         case 400:
                             outstr.append("404 Bad Request\r\n");
                             break;
+                        case 301:
+                            outstr.append("301 Moved Permanently\r\n");
+                            keeplive=false;
+                            for(auto &sh:headerlists){
+                                outstr.append(sh);
+                                if(sh.back()!='\n'){
+                                   outstr.append("\r\n");     
+                                }
+                            }
+                            
+                            outstr.append("Connection: close\r\n");
+                            outstr.append("\r\n");
+                            if(isssl){
+                                asio::write(https_socket.front(), asio::buffer(outstr));
+                            }else{
+                                asio::write(http_socket.front(), asio::buffer(outstr));
+                            }
+                            return;
+                            break;       
                         case 200:
                                 outstr.append("200 OK\r\n");
                                 break; 
@@ -164,6 +385,12 @@ namespace HTTP {
                         keeplive=true;
                     }else{
                         outstr.append("Connection: close\r\n");
+                    }
+                     for(auto &sh:headerlists){
+                                outstr.append(sh);
+                                if(sh.back()!='\n'){
+                                   outstr.append("\r\n");     
+                                }
                     }
                     outstr.append("Content-Length: ");
                     outstr.append(std::to_string(str.size()));
@@ -197,6 +424,25 @@ namespace HTTP {
                         case 400:
                             outstr.append("404 Bad Request\r\n");
                             break;
+                        case 301:
+                            outstr.append("301 Moved Permanently\r\n");
+                            keeplive=false;
+                            for(auto &sh:headerlists){
+                                outstr.append(sh);
+                                if(sh.back()!='\n'){
+                                   outstr.append("\r\n");     
+                                }
+                            }
+                            
+                            outstr.append("Connection: close\r\n");
+                            outstr.append("\r\n");
+                            if(isssl){
+                                asio::write(https_socket.front(), asio::buffer(outstr));
+                            }else{
+                                asio::write(http_socket.front(), asio::buffer(outstr));
+                            }
+                            return;
+                            break;       
                         case 200:
                                 outstr.append("200 OK\r\n");
                                 break; 
@@ -208,6 +454,12 @@ namespace HTTP {
                         keeplive=true;
                     }else{
                         outstr.append("Connection: close\r\n");
+                    }
+                    for(auto &sh:headerlists){
+                                outstr.append(sh);
+                                if(sh.back()!='\n'){
+                                   outstr.append("\r\n");     
+                                }
                     }
                     outstr.append("Content-Length: ");
                     outstr.append(std::to_string(str.size()));
@@ -266,7 +518,7 @@ namespace HTTP {
                     fseek(ff, 0, SEEK_END);
                     mustnum= ftell(ff);
                     fseek(ff, 0, SEEK_SET);
-                    sendhttpheader(200,mustnum+_output.size());   
+                    sendheader(200,mustnum+_output.size());   
 
                     if(_output.size()>0){  
                           if(isssl){
@@ -296,7 +548,7 @@ namespace HTTP {
                 
             }
 
- void clientpeer::sendhttpheader(unsigned int statecode,unsigned long long contentlength){
+ void clientpeer::sendheader(unsigned int statecode,unsigned long long contentlength=0){
                     std::string outstr;
                     outstr.append("HTTP/1.1 ");
 
@@ -310,6 +562,25 @@ namespace HTTP {
                         case 400:
                             outstr.append("404 Bad Request\r\n");
                             break;
+                        case 301:
+                            outstr.append("301 Moved Permanently\r\n");
+                            keeplive=false;
+                            for(auto &sh:headerlists){
+                                outstr.append(sh);
+                                if(sh.back()!='\n'){
+                                   outstr.append("\r\n");     
+                                }
+                            }
+                            
+                            outstr.append("Connection: close\r\n");
+                            outstr.append("\r\n");
+                            if(isssl){
+                                asio::write(https_socket.front(), asio::buffer(outstr));
+                            }else{
+                                asio::write(http_socket.front(), asio::buffer(outstr));
+                            }
+                            return;
+                            break;    
                         case 200:
                                 outstr.append("200 OK\r\n");
                                 break; 
@@ -321,6 +592,12 @@ namespace HTTP {
                         keeplive=true;
                     }else{
                         outstr.append("Connection: close\r\n");
+                    }
+                    for(auto &sh:headerlists){
+                                outstr.append(sh);
+                                if(sh.back()!='\n'){
+                                   outstr.append("\r\n");     
+                                }
                     }
                     outstr.append("Content-Length: ");
                     outstr.append(std::to_string(contentlength));

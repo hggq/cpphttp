@@ -2,6 +2,7 @@
 #ifndef BOOST_DLL_HTTPSOCOMMON_API_HPP
 #define BOOST_DLL_HTTPSOCOMMON_API_HPP
 
+#include <functional>
 #include <string>
 #include <string_view>
 #include <boost/function.hpp>
@@ -48,62 +49,69 @@ using namespace HTTP;
              mysql_callbackand_t api_mysqlselect;
              mysql_callbacksql_t api_mysqledit;
 
-             mysql_callbacksql_rollback api_mysqlcommit;   
-     
-             std::string output;
+             mysql_callbacksql_rollback api_mysqlcommit;  
+
+             std::function<HTTP::clientpeer*()>  getpeer; 
+             std::function<std::string&()>  getoutput;  
+             
+            
             //  /*static*/ thread_local  HTTP::OBJ_VALUE vobj;
                clientapi& operator<<(HTTP::OBJ_VALUE &a){
-                    output.append(a.to_string());
+                    this->getoutput().append(a.to_string());
                     return *this;
                 }
              clientapi& operator<<(std::string &&a){
-                    output.append(a);
+                    this->getoutput().append(a);
                     return *this;
                 }
                  clientapi& operator<<(std::string &a){
-                    output.append(a);
+                    this->getoutput().append(a);
                     return *this;
                 }
                  clientapi& operator<<(std::string_view a){
-                    output.append(a);
+                    this->getoutput().append(a);
                     return *this;
                 }
                 clientapi& operator<<(char const *a){
-                    output.append(a);
+                    this->getoutput().append(a);
                     return *this;
                 }
                 clientapi& operator<<(float a){
-                    output.append(std::to_string(a));
+                    this->getoutput().append(std::to_string(a));
                     return *this;
                 } 
                 clientapi& operator<<(long long a){
-                    output.append(std::to_string(a));
+                    this->getoutput().append(std::to_string(a));
                     return *this;
                 }
                  clientapi& operator<<(int a){
-                    output.append(std::to_string(a));
+                    this->getoutput().append(std::to_string(a));
                     return *this;
                 }
                  clientapi& operator<<(short a){
-                    output.append(std::to_string(a));
+                    this->getoutput().append(std::to_string(a));
+                    return *this;
+                }
+                 clientapi& operator<<(unsigned short a){
+                    this->getoutput().append(std::to_string(a));
                     return *this;
                 }
                 clientapi& operator<<(unsigned long long a){
-                    output.append(std::to_string(a));
+                    this->getoutput().append(std::to_string(a));
                     return *this;
                 }
                  clientapi& operator<<(unsigned int a){
-                    output.append(std::to_string(a));
+                    this->getoutput().append(std::to_string(a));
                     return *this;
                 }
                 clientapi& operator<<(double a){
                
-                    output.append(std::to_string(a));
+                    this->getoutput().append(std::to_string(a));
                     return *this;
                 }
                 template<typename T>
                 clientapi& operator<<(T &a){
-                    output.append(a.show());
+                    this->getoutput().append(a.show());
                     return *this;
                 }
             static clientapi* instance()
