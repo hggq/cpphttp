@@ -22,11 +22,9 @@ class Cookie{
                 if(!domain.empty()){
                     _domain[key]=domain;
                 }
-                if(!_path.empty()){
+                if(!path.empty()){
                     _path[key]=path;
                 }
-
-
                 if(secure){
                     _secure[key]=1;
                 }
@@ -130,7 +128,7 @@ class Cookie{
 
                     } 
 
-            
+
 
               return tempc;
           }else{

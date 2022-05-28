@@ -2001,7 +2001,8 @@ namespace HTTP {
                  headendhitnum=0;
                  host.clear();
                  etag.clear();
-                 error=0;       
+                 error=0;      
+                 cookie.clear(); 
                   method=HEAD_METHOD::UNKNOW;
                   headerfinish=0;
                    

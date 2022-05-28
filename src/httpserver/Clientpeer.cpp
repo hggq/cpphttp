@@ -66,8 +66,8 @@ namespace HTTP {
                         temph.append("; Domain=");
                         temph.append(domain);     
                     }
-
-                     if(domainpath.size()>1){
+                   
+                     if(domainpath.size()>0){
                         temph.append("; Path=");
                         temph.append(domainpath);     
                     }
@@ -90,7 +90,19 @@ namespace HTTP {
              cookie.set(key,val,exptime,domain,path,secure,httponly);
              header->cookie.set(key,val,exptime,domain,path,secure,httponly);
         }
+        void clientpeer::addcookie(std::string key,std::string val,unsigned long exptime=0,std::string domain="",std::string path=""){
+             cookie.set(key,val,exptime,domain,path);
+             header->cookie.set(key,val,exptime,domain,path);
+        }
         void clientpeer::addcookie(std::string key,std::string val,unsigned long exptime=0){
+             cookie.set(key,val,exptime);
+             header->cookie.set(key,val,exptime);
+        }
+        void clientpeer::addcookie(std::string key,std::string val,int exptime=0,std::string domain="",std::string path=""){
+             cookie.set(key,val,exptime,domain,path);
+             header->cookie.set(key,val,exptime,domain,path);
+        }
+         void clientpeer::addcookie(std::string key,std::string val,int exptime=0){
              cookie.set(key,val,exptime);
              header->cookie.set(key,val,exptime);
         }
@@ -111,7 +123,7 @@ namespace HTTP {
                std::string root_path;
                if(globalconfig){
                std::map<std::string,std::map<std::string,std::string>> &config=*globalconfig;
-                    root_path.clear(); 
+                   
                             if(config.find("default")!=config.end()){
                                      root_path=config["default"]["serverpath"];
                                      if(root_path.size()>0&&root_path.back()!='/'){
@@ -185,13 +197,13 @@ namespace HTTP {
           if(sessionfile.empty()){
                 sessionfile=remote_ip+std::to_string(remote_port)+std::to_string(timeid())+std::to_string(rand()); 
                 sessionfile=std::to_string(std::hash<std::string>{}(sessionfile));
-                cookie.set("CPPSESSID",sessionfile,7200);
-                header->cookie.set("CPPSESSID",sessionfile,7200);
+                cookie.set("CPPSESSID",sessionfile,7200,"","/");
+                header->cookie.set("CPPSESSID",sessionfile,7200,"","/");
            }   
                std::string root_path;
-
+               if(globalconfig){ 
                std::map<std::string,std::map<std::string,std::string>> &config=*globalconfig;
-                    root_path.clear();
+                   
 
                             if(config.find("default")!=config.end()){
                                      root_path=config["default"]["serverpath"];
@@ -203,7 +215,7 @@ namespace HTTP {
                                 root_path="tmp/";
                             }
 
-              
+               }
                sessionfile.append("_sess");
                root_path.append(sessionfile);
                
@@ -242,10 +254,8 @@ namespace HTTP {
    void clientpeer::clear_session(){
         if(header->cookie.check("CPPSESSID")){
                std::string root_path;
-
+                if(globalconfig){
                std::map<std::string,std::map<std::string,std::string>> &config=*globalconfig;
-                    root_path.clear();
-
                             if(config.find("default")!=config.end()){
                                      root_path=config["default"]["serverpath"];
                                      if(root_path.size()>0&&root_path.back()!='/'){
@@ -255,7 +265,7 @@ namespace HTTP {
                             }else{
                                 root_path="tmp/";
                             }
-
+                }
                std::string sessionfile= header->cookie.get("CPPSESSID");
                if(sessionfile.empty()){
                    return;

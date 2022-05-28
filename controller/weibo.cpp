@@ -32,8 +32,9 @@ std::string home( HTTP::OBJ_VALUE& obj){
     output<<"hello world!  weibo so file";
     output<<"<p><a href=\"/weibo/header\">header</a></p>";
     output<<"<p><a href=\"/weibo/hello\">content</a></p>";
-
-   
+      output<<"<p>";
+      output<<peer->session["aaa"].to_string();
+      output<<"</p>";
    //  echo(peer->remote_ip);
    //  echo(peer->remote_port);
      output<<peer->remote_ip;

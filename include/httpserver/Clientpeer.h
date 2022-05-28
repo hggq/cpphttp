@@ -81,7 +81,10 @@ public:
   void save_session();
   void clear_session();
   void addcookie(std::string,std::string,unsigned long,std::string,std::string,bool,bool);
+  void addcookie(std::string,std::string,unsigned long,std::string,std::string);
   void addcookie(std::string,std::string,unsigned long);
+  void addcookie(std::string,std::string,int,std::string,std::string);
+  void addcookie(std::string,std::string,int);
   void cookietoheader();
 public:
   std::list<asio::ssl::stream<asio::ip::tcp::socket>> https_socket;

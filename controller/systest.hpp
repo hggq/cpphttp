@@ -55,7 +55,7 @@ std::string helloaa(HTTP::OBJ_VALUE& obj){
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
    // peer->clear_session();
-      peer->addcookie("names","wwwww",7200*24);
+      peer->addcookie("names","wwwww",7200*24,peer->header->host,"/");
       peer->addheader("server: cpphttp");
     comnews.where("newsid>",1).order("newsid  DESC").limit(10).fetch();
      if(comnews.size()>0){

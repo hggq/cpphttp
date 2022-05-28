@@ -304,7 +304,9 @@ inline void ThreadPool::threadloop(int index) {
 bool ThreadPool::fixthread() {
 
   unsigned int tempcount = threadlist.size();
-
+  if(tempcount<128){
+    return false;
+  }
   if (tempcount < (mixthreads.load() + 10)) {
     return false;
   }
@@ -489,7 +491,6 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                                 if(sitecontent.empty()){
                                                     if(HTTP::vobj.as_int()==0){
                                                         peer->send(200,HTTP::_output);
-                                                        //peer->send(200,pnn.output);
                                                     }
                                                 }else{
                                                     peer->send(200,sitecontent);
@@ -518,7 +519,6 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                                 if(sitecontent.empty()){
                                                     if(HTTP::vobj.as_int()==0){
                                                                     peer->send(200,HTTP::_output);
-                                                                    //peer->send(200,pnn.output);
                                                     }
                                                 }else{
                                                     peer->send(200,sitecontent);
@@ -541,7 +541,6 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                                 if(sitecontent.empty()){
                                                     if(HTTP::vobj.as_int()==0){
                                                         peer->send(200,HTTP::_output);
-                                                        //peer->send(200,pnn.output);
                                                     }
                                                 }else{
                                                     peer->send(200,sitecontent);
@@ -570,7 +569,6 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                                 if(sitecontent.empty()){
                                                     if(HTTP::vobj.as_int()==0){
                                                                     peer->send(200,HTTP::_output);
-                                                                    //peer->send(200,pnn.output);
                                                     }
                                                 }else{
                                                     peer->send(200,sitecontent);
@@ -735,7 +733,7 @@ public:
     peer->globalconfig=&_serverconfig;
     for (;;) {
         peer->header->clear();
-        peer->headerlists.clear();
+        
         for(;;){
             memset(peer->_data, 0x00, 2048);
             if(peer->isssl){
@@ -844,7 +842,8 @@ public:
         }catch(...) {
           break;
         }
-        
+        peer->cookie.clear();
+        peer->headerlists.clear();
 
          if(peer->keeplivemax==0){
              break;
