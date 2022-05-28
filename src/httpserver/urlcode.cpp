@@ -229,7 +229,8 @@ std::string url_encode(const char * str,int len){
     std::string url;
     const char* p = str;    
     unsigned char word;
-    url.resize(len);
+    if(len>0)
+    url.reserve(len);
     for(int i=0;i<len;i++){
          if ((p[i] >= 'A' && p[i] <= 'Z')||(p[i] >= 'a' && p[i] <= 'z')||(p[i] >= '0' && p[i] <= '9') || 
             (p[i] == '-') ||
@@ -268,7 +269,8 @@ std::string url_rawencode(const char * str,int len){
     unsigned char word;
     char zifu;   
     int j=0;
-    url.resize(len);
+    if(len>0)
+    url.reserve(len);
     for(int i=0;i<len;i++){
          if ((p[i] >= 'A' && p[i] <= 'Z')||(p[i] >= 'a' && p[i] <= 'z')||(p[i] >= '0' && p[i] <= '9') || 
             (p[i] == '-') ||

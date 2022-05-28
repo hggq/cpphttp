@@ -51,10 +51,11 @@ std::string helloaa(HTTP::OBJ_VALUE& obj){
 
     peer->save_session();
 
-    std::this_thread::sleep_for(std::chrono::seconds(6));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    peer->clear_session();
-
+   // peer->clear_session();
+      peer->addcookie("names","wwwww",7200*24);
+      peer->addheader("server: cpphttp");
     comnews.where("newsid>",1).order("newsid  DESC").limit(10).fetch();
      if(comnews.size()>0){
          for(auto &bb:comnews){
@@ -76,6 +77,7 @@ std::string helloaa(HTTP::OBJ_VALUE& obj){
 
     }
     obj["name"]="view name huang";
+    
     viewshow("about/show");
     //send_file("viewmodule.html");
    return "";

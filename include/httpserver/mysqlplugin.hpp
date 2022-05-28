@@ -220,9 +220,9 @@ std::vector<mysqlconnect_t> getmysqlconfig(std::string filename){
                           mysqlconf.spname=keyname;
              myconfig.push_back(mysqlconf);
         }
-        for(int i=0;i<myconfig.size();i++){
-            std::cout<<"i"<<std::to_string(i)<<" pretable"<<myconfig[i].pretable<<std::endl;
-        }
+        // for(int i=0;i<myconfig.size();i++){
+        //     std::cout<<"i"<<std::to_string(i)<<" pretable"<<myconfig[i].pretable<<std::endl;
+        // }
         return myconfig;
     }
  
@@ -244,7 +244,7 @@ std::vector<mysqlconnect_t> getmysqlconfig(std::string filename){
                   }
 
                  mysqlx::RowResult sqlselectfetch(std::string &sql){
-                         std::cout<<"---sqlselectfetch------------"<<std::endl;
+                       
                         std::unique_lock<std::mutex> lock(sessselect_mutex);
                         if(sessselecttpool.empty()){
                               
@@ -375,26 +375,26 @@ std::vector<mysqlconnect_t> getmysqlconfig(std::string filename){
                 unsigned int clearpool(){
                          int i=0;
                          if(selectbusynum==0){
-                               std::cout<<"===clearsessselect_mutex==="<<std::endl;
+                           
                                std::unique_lock<std::mutex> lock(sessselect_mutex);
                                for(;!sessselecttpool.empty();){
                                     std::unique_ptr<mysqlx::Session> sess(std::move(sessselecttpool.front()));
                                     sessselecttpool.pop();
                                     sess->close();
                                     sess.reset(nullptr);
-                                    std::cout<<"i:"<<i<<std::endl;
+                                  
                                     i++;
                                }
                          }
                           if(editbusynum==0){
-                               std::cout<<"+++clearsesssedit_mutex++++"<<std::endl;
+                              
                                std::unique_lock<std::mutex> lock(sessedit_mutex);
                                for(;!sesseditpool.empty();){
                                     std::unique_ptr<mysqlx::Session> sess(std::move(sesseditpool.front()));
                                     sesseditpool.pop();
                                     sess->close();
                                     sess.reset(nullptr);
-                                    std::cout<<"i:"<<i<<std::endl;
+                                     
                                     i++;
                                }
                          }

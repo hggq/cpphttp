@@ -413,7 +413,7 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
  try
  { 
   HTTP::_threadclientpeer=peer.get();
-  peer->globalconfig=&_serverconfig;
+  
   std::thread::id thread_id=std::this_thread::get_id();
    clientapi& pnn =clientapi::get();
   
@@ -732,9 +732,10 @@ public:
     peer->getremoteport();
     peer->getlocalip();
     peer->getlocalport();
-
+    peer->globalconfig=&_serverconfig;
     for (;;) {
         peer->header->clear();
+        peer->headerlists.clear();
         for(;;){
             memset(peer->_data, 0x00, 2048);
             if(peer->isssl){

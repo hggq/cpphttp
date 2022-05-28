@@ -4,8 +4,10 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "datetime.h"
+#include "urlcode.h"
 
-
+namespace HTTP {
 class Cookie{
 
       public:
@@ -105,6 +107,36 @@ class Cookie{
       std::map<std::string,std::string> getAll(){
           return _val;
       }
+      std::string makeheader(std::string key){
+            std::string tempc;
+         if(_val.find(key)!=_val.end()){
+                tempc.append("Set-Cookie: ");
+                tempc.append(HTTP::url_encode(key.data(),key.size()));
+                tempc.push_back('=');
+                tempc.append(HTTP::url_encode( _val[key].data(), _val[key].size()));
+
+                unsigned long long timeexp=0;
+                   if(_expires.find(key)!=_expires.end()){
+                       timeexp=_expires[key];
+
+                             if(timeexp>0&&timeexp<63072000){
+                                    timeexp=HTTP::timeid()+timeexp;
+                                }
+                                if(timeexp>0){
+                                    
+                                    tempc.append("; Expires=");
+                                    tempc.append(HTTP::getGmtTime(timeexp));
+                                }
+
+                    } 
+
+            
+
+              return tempc;
+          }else{
+              return tempc;
+          }
+      }
       void clear(){
            _val.clear();
            _domain.clear();
@@ -169,5 +201,5 @@ class Cookie{
       std::map<std::string,bool> _set;
 
 };
-
+}
 #endif

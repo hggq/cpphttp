@@ -19,6 +19,9 @@
 #include <memory>
 #include <cstdio> 
 #include <sys/fcntl.h>
+#include "datetime.h"
+#include "urlcode.h"
+
 
 #ifndef WIN32
 #include <unistd.h>
@@ -32,11 +35,65 @@
 // #include "common_functions.h"
 namespace HTTP { 
         namespace fs = std::filesystem;
-        void clientpeer::set_cookie(std::string key,std::string val,unsigned long exptime=0,std::string domain="",std::string path="",bool secure=false,bool httponly=false){
+          void clientpeer::cookietoheader(){
+              std::string temph;
+              for(auto &iter:cookie){
+                  temph.clear();  
+                  std::string key=iter.first;
+                  std::string domain=cookie.getDomain(key);
+                  std::string domainpath=cookie.getPath(key);
+                   unsigned long timeexp=cookie.getExpires(key);
+                   unsigned char issecure=cookie.getSecure(key);
+                    unsigned char isonly=cookie.getHttponly(key);
+
+                    temph.append("Set-Cookie: ");
+                    temph.append(url_encode(iter.first.data(),iter.first.size()));
+                    temph.push_back('=');
+                    temph.append(url_encode(iter.second.data(),iter.second.size()));
+ 
+                    if(timeexp>0&&timeexp<63072000){
+                        timeexp=timeid()+timeexp;
+                    }
+
+                    key.clear();
+                    if(timeexp>0){
+                        key=HTTP::getGmtTime((unsigned long long)timeexp);
+                        temph.append("; Expires=");
+                        temph.append(key);
+                    }
+
+                    if(domain.size()>1){
+                        temph.append("; Domain=");
+                        temph.append(domain);     
+                    }
+
+                     if(domainpath.size()>1){
+                        temph.append("; Path=");
+                        temph.append(domainpath);     
+                    }
+                    
+
+                     if(issecure>0){
+                        temph.append("; Secure");
+                          
+                    }
+
+                      if(isonly>0){
+                        temph.append("; HttpOnly");
+                          
+                    }
+
+                   headerlists.emplace_back(temph);
+              }
+        }  
+        void clientpeer::addcookie(std::string key,std::string val,unsigned long exptime=0,std::string domain="",std::string path="",bool secure=false,bool httponly=false){
              cookie.set(key,val,exptime,domain,path,secure,httponly);
              header->cookie.set(key,val,exptime,domain,path,secure,httponly);
         }
-
+        void clientpeer::addcookie(std::string key,std::string val,unsigned long exptime=0){
+             cookie.set(key,val,exptime);
+             header->cookie.set(key,val,exptime);
+        }
     void clientpeer::addheader(std::string_view str){
             headerlists.emplace_back(str);
     }
@@ -52,10 +109,9 @@ namespace HTTP {
     void clientpeer::parse_session(){
          if(header->cookie.check("CPPSESSID")){
                std::string root_path;
-
+               if(globalconfig){
                std::map<std::string,std::map<std::string,std::string>> &config=*globalconfig;
-                    root_path.clear();
-
+                    root_path.clear(); 
                             if(config.find("default")!=config.end()){
                                      root_path=config["default"]["serverpath"];
                                      if(root_path.size()>0&&root_path.back()!='/'){
@@ -65,7 +121,7 @@ namespace HTTP {
                             }else{
                                 root_path="tmp/";
                             }
-
+               }  
                std::string sessionfile= header->cookie.get("CPPSESSID");
                if(sessionfile.empty()){
                    return;
@@ -76,16 +132,13 @@ namespace HTTP {
                 struct stat sessfileinfo;
                 unsigned long long  tempsesstime=0;
                  memset(&sessfileinfo,0,sizeof(sessfileinfo));
-                         if(stat(root_path.c_str(),&sessfileinfo)==0){
-
-                                tempsesstime =   sessfileinfo.st_mtime;
-                                
-                         }
+                if(stat(root_path.c_str(),&sessfileinfo)==0){
+                    tempsesstime =   sessfileinfo.st_mtime;
+                }
 
                 if(tempsesstime>0&&tempsesstime==sessionfile_time){
                      return;         
                 }
-
               int fd = open(root_path.c_str(), O_RDONLY);
                 if (fd == -1) {
                     //perror("open");
@@ -358,6 +411,7 @@ namespace HTTP {
                         case 301:
                             outstr.append("301 Moved Permanently\r\n");
                             keeplive=false;
+                            cookietoheader();
                             for(auto &sh:headerlists){
                                 outstr.append(sh);
                                 if(sh.back()!='\n'){
@@ -386,6 +440,7 @@ namespace HTTP {
                     }else{
                         outstr.append("Connection: close\r\n");
                     }
+                    cookietoheader();
                      for(auto &sh:headerlists){
                                 outstr.append(sh);
                                 if(sh.back()!='\n'){
@@ -427,6 +482,7 @@ namespace HTTP {
                         case 301:
                             outstr.append("301 Moved Permanently\r\n");
                             keeplive=false;
+                            cookietoheader();
                             for(auto &sh:headerlists){
                                 outstr.append(sh);
                                 if(sh.back()!='\n'){
@@ -455,6 +511,7 @@ namespace HTTP {
                     }else{
                         outstr.append("Connection: close\r\n");
                     }
+                    cookietoheader();
                     for(auto &sh:headerlists){
                                 outstr.append(sh);
                                 if(sh.back()!='\n'){
@@ -565,6 +622,7 @@ namespace HTTP {
                         case 301:
                             outstr.append("301 Moved Permanently\r\n");
                             keeplive=false;
+                            cookietoheader();
                             for(auto &sh:headerlists){
                                 outstr.append(sh);
                                 if(sh.back()!='\n'){
@@ -593,6 +651,7 @@ namespace HTTP {
                     }else{
                         outstr.append("Connection: close\r\n");
                     }
+                    cookietoheader();
                     for(auto &sh:headerlists){
                                 outstr.append(sh);
                                 if(sh.back()!='\n'){
