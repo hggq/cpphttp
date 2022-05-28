@@ -157,13 +157,11 @@ namespace HTTP {
                 if (fcntl(fd, F_SETLKW, &lock) == -1) {
                     return;
                 }
-
                 int filelen= lseek(fd,0L,SEEK_END);  
                 sessionfile.clear();
                 sessionfile.resize(filelen);
-
+                 lseek(fd,0L,SEEK_SET); 
                  int  readsize= read(fd,sessionfile.data(),filelen);
-
                 if(readsize>0){
                     sessionfile.resize(readsize);
                     session.fromjson(sessionfile);

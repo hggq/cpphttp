@@ -7,7 +7,8 @@ std::string home(HTTP::OBJ_VALUE& obj){
     echo("hello world! this use systest inline callback");
     echo("<p><a href=\"/weibo/header\">header</a></p>");
     echo("<p><a href=\"/weibo/hello\">content</a></p>");
-
+      HTTP::clientpeer *peer= clientapi::get().getpeer();
+      echo(peer->session["aaa"].to_string());
     orm::sms::News  comnews;
 
     comnews.where("newsid>",63597).order("newsid  DESC").limit(10).fetch();
