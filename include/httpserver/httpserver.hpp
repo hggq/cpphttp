@@ -102,7 +102,7 @@ namespace this_coro = asio::this_coro;
 #endif
 
 
-std::map<std::string,SSL_CTX*> g_ctxMap;
+// std::map<std::string,SSL_CTX*> g_ctxMap;
 std::map<std::string,std::function<std::shared_ptr<websockets_api>(std::weak_ptr<clientpeer>)>> websocketmethodcallback;
 std::map<std::string,std::function<std::string(HTTP::OBJ_VALUE&)>>  methodcallback;
 std::string serverconfigpath;
@@ -628,7 +628,8 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
 }
 
 void ThreadPool::http_websocketsrun(std::shared_ptr<clientpeer> peer) {
-
+  try
+  { 
       if(peer->ws->isfile){
           peer->websocket->onfiles(peer->ws->filename);
       }else{
@@ -636,6 +637,10 @@ void ThreadPool::http_websocketsrun(std::shared_ptr<clientpeer> peer) {
       }
       peer->ws->filename.clear();
       peer->ws->indata.clear();
+    }catch (std::exception& e)
+    {
+        
+    }
 }
 
 class httpserver {
@@ -730,10 +735,9 @@ public:
     peer->getremoteport();
     peer->getlocalip();
     peer->getlocalport();
-    peer->globalconfig=&_serverconfig;
+    // peer->globalconfig=&_serverconfig;
     for (;;) {
         peer->header->clear();
-        
         for(;;){
             memset(peer->_data, 0x00, 2048);
             if(peer->isssl){
@@ -758,7 +762,7 @@ public:
             peer->parse_session();
         }
         if(peer->header->state.websocket){    
-              peer->httptype=1;  
+                peer->httptype=1;  
                
                 peer->ws=std::make_unique<WebSocketparse>();
                 peer->ws->setWebsocketkey(peer->header->websocket.key);
@@ -842,8 +846,7 @@ public:
         }catch(...) {
           break;
         }
-        peer->cookie.clear();
-        peer->headerlists.clear();
+        
 
          if(peer->keeplivemax==0){
              break;
@@ -853,6 +856,9 @@ public:
           }else{
             break;
           }
+
+        peer->cookie.clear();
+        peer->headerlists.clear();
       }
     } catch (std::exception &e) {
       std::printf("clientpeer : %s\n", e.what());
@@ -862,8 +868,6 @@ public:
 
   awaitable<void> listener() {
     auto executor = co_await this_coro::executor;
-    // tcp::acceptor acceptor(executor, {tcp::v4(), 4444});
-
     asio::error_code ec;
 
     tcp::acceptor acceptor(executor);
@@ -894,7 +898,10 @@ public:
     for (;;) {
       //clientpeer peer;
       std::shared_ptr<clientpeer> clientp= std::make_shared<clientpeer>();
- 
+      clientp->globalconfig=&_serverconfig;
+      if(total_count>0xFFFFFF00){
+          total_count=0;
+      }
       tcp::socket socket = co_await acceptor.async_accept(use_awaitable);
  
 
@@ -935,6 +942,10 @@ public:
     for (;;) {
  
       std::shared_ptr<clientpeer> clientp= std::make_shared<clientpeer>();
+      clientp->globalconfig=&_serverconfig;
+      if(total_count>0xFFFFFF00){
+          total_count=0;
+      }
       tcp::socket socket = co_await acceptor.async_accept(use_awaitable);
 
        asio::ssl::stream<asio::ip::tcp::socket> sslsocket(std::move(socket), context_);
@@ -982,7 +993,6 @@ public:
 
      clientapi* pn =clientapi::instance();
  
- 
              pn->api_loadview=loadview;
              pn->api_loadviewnotcall=loadviewnotcall;
              pn->api_loadviewfetchnotcall=loadviewfetchnotcall;
@@ -1007,6 +1017,19 @@ public:
            pn->getpeer=getpeer;  
            pn->getoutput=getoutput;  
 
+     std::string exfile="/tmp/httpexpid.locksocket";
+     asio::io_context io_c;
+     asio::local::stream_protocol::socket s(io_c);
+     s.connect(asio::local::stream_protocol::endpoint(exfile.c_str()));
+
+     unsigned char buf[6];
+     unsigned int  temp=0;
+     union pidtochar{
+        unsigned int i=0;
+        unsigned char c[4];    
+    }pidex;
+    pidex.i=getpid();
+
     for(;;){
         if(reloadmysql){
              loadmysqlconfig();
@@ -1030,6 +1053,22 @@ public:
             }
           clientrunpool.printthreads();  
 
+         buf[0]=0x84;
+         buf[1]=pidex.c[0];
+         buf[2]=pidex.c[1];
+         buf[3]=pidex.c[2];
+         buf[4]=pidex.c[3];
+        	try
+				{
+         asio::write(s, asio::buffer(buf, 5));
+         	}catch (std::exception& e)
+				{
+					//std::cout<<" watch http "<<e.what() << std::endl;
+          io_context.stop();  
+          
+          break;
+				}
+
       std::this_thread::sleep_for(std::chrono::seconds(4));  
      }   
   }
@@ -1044,7 +1083,6 @@ public:
  
 
        for (int i = 0; i < 1; ++i) {
- 
         websocketthreads.emplace_back(std::bind(&httpserver::websocket_loop, this, i));
       }
 
@@ -1087,7 +1125,7 @@ public:
   std::mutex headqueue_mutex;
   std::condition_variable headqueue_condition;
   bool stop;
-  std::atomic_int total_count = 0;
+  std::atomic_uint total_count = 0;
   // httpheader end
 
   ThreadPool clientrunpool{32};
