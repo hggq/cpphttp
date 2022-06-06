@@ -11,11 +11,11 @@ g++-11 -std=c++20 testserver.cpp src/httpserver/request.cpp src/httpserver/unico
 */
 static sigjmp_buf env_startacs;
 static void sig_child(int signo);
-int predumppid=0;
+ 
 int forkcount_=0;
 unsigned char livprocessnum=2;//产生进程
 unsigned char checkprocesssecond=12;
-unsigned char processmisstime=30;
+ 
 
 static void sig_child(int signo)
 {
@@ -29,9 +29,9 @@ static void sig_child(int signo)
             
         pid = wait( &stat );  
         printf("SIGCHLD...farter id %d..%d\n",getpid(),pid);
-        predumppid=pid;
+ 
         checkprocesssecond=12;
-        processmisstime=30;
+
         siglongjmp(env_startacs, 1);//跳转至先前的setjmp处
 		break;
  
@@ -217,11 +217,13 @@ int main(int argc,char *argv[]){
 
                     }
                     mainserverloop.lock_edit.clear();
-                    if(livenum<2){
+                    if(livenum<livprocessnum){
                          siglongjmp(env_startacs, 1); //跳转至先前的setjmp处  
                     }
 
-
+                    if(checkprocesssecond<60){
+                        checkprocesssecond+=1;
+                    }
               }   
 
         }
