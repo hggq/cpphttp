@@ -89,33 +89,34 @@ controller/systest.hpp 测试文件
 
 ```c++
 #include "orm.h"
+#include <chrono>
+#include <thread>
 namespace HTTP {
 
-std::string home(HTTP::OBJ_VALUE& obj){
-    echo("hello world! this use systest inline callback");
-    echo("<p><a href=\"/weibo/header\">header</a></p>");
-    echo("<p><a href=\"/weibo/hello\">content</a></p>");
-
+std::string home(clientpeer& client){
+    client<<"hello world! this use systest inline callback";
+    client<<"<p><a href=\"/weibo/header\">header</a></p>";
+    client<<"<p><a href=\"/weibo/hello\">content</a></p>";
+    client<<client.session["aaa"];
     orm::sms::News  comnews;
 
     comnews.where("newsid>",63597).order("newsid  DESC").limit(10).fetch();
      if(comnews.size()>0){
          for(auto &bb:comnews){
-         echo("<p>"+std::to_string(bb.newsid)+" "+bb.newtitle+" "+bb.adddate+" "+bb.isview+"</p>");
-         
+         client<<"<p>"<<bb.newsid<<" "<<bb.newtitle<<" "<<bb.adddate<<" "<<bb.isview<<"</p>";
        }
 
     }
     orm::Moduleauth  mbc;
     mbc.where("mid>",0).fetch();
-    echo(mbc.getstrCol("name"));
-    echo(mbc.getstrCol("name",true));
+    client<<mbc.getstrCol("name");
+    client<<mbc.getstrCol("name",true);
     auto ww=mbc.getCol<std::string>("name");
           for(auto &bb:ww){
-         echo("<p>"+bb+"</p>");
+         client<<"<p>"<<bb<<"</p>";
      }
-     obj["name"]="test inline callback";
-    viewshow("about/header");
+    client.vobj["name"]="test inline callback";
+    viewshow("about/head");
     //send_file("viewmodule.html");
    return "";
 }
