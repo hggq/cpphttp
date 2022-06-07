@@ -24,20 +24,19 @@ using namespace HTTP;
     typedef boost::function<int(const char *,int)> webscoket_callback_t;//websocket send
    // typedef boost::function<void(const char *,int)> webscoket_readcall_t;//websocket read
    typedef boost::function<mysqlx::SqlResult(std::string&,size_t)> mysql_callbacksql_t;
-   typedef boost::function<boost::function<std::string(HTTP::OBJ_VALUE&)>(std::string)> modulemethod_callback_t;
-    typedef boost::function<boost::function<std::string(HTTP::clientpeer *,HTTP::OBJ_VALUE&)>(std::string)> modulemethod_callback_peert;
-
+   typedef boost::function<boost::function<std::string(HTTP::OBJ_VALUE&)>(std::string)> viewmethod_callback_t;
+   typedef boost::function<boost::function<std::string(HTTP::clientpeer &)>(std::string)> modulemethod_callback_t;
     typedef boost::function<mysqlx::RowResult(std::string&,size_t)> mysql_callbackand_t;
     typedef boost::function<bool(std::list<std::string>&,size_t)> mysql_callbacksql_rollback;
  
 
-             modulemethod_callback_t api_loadview;
-             modulemethod_callback_t api_loadviewnotcall;
-             modulemethod_callback_t api_loadviewfetchnotcall;
-             modulemethod_callback_t api_loadviewobjcall;
+             viewmethod_callback_t api_loadview;
+             viewmethod_callback_t api_loadviewnotcall;
+             viewmethod_callback_t api_loadviewfetchnotcall;
+             viewmethod_callback_t api_loadviewobjcall;
 
              modulemethod_callback_t api_loadcontrol;
-             modulemethod_callback_t api_sendjsoncall;
+             viewmethod_callback_t api_sendjsoncall;
              modulemethod_callback_t api_modulesenddata;
 
              echo_callbackand_t api_echoassignand;

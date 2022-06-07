@@ -30,7 +30,6 @@
 
 
 namespace HTTP {
-    HTTP::OBJ_VALUE vobj;
    unsigned int get_controlversion(){
        return 0x01000000;
    } 
@@ -168,7 +167,8 @@ void viewshow(std::string modulemethod){
    clientapi::get().api_loadviewnotcall(modulemethod);
 } 
 std::string viewfetch(std::string modulemethod){
-   return clientapi::get().api_loadviewfetchnotcall(modulemethod)(vobj); 
+    
+   return clientapi::get().api_loadviewfetchnotcall(modulemethod)(clientapi::get().getpeer()->vobj); 
 } 
 void viewshow(std::string modulemethod,HTTP::OBJ_VALUE &b){
     clientapi::get().api_loadviewobjcall(modulemethod)(b);
@@ -177,9 +177,9 @@ std::string viewfetch(std::string modulemethod,HTTP::OBJ_VALUE &b){
  return  clientapi::get().api_loadview(modulemethod)(b);
 } 
 std::string loadmodule(std::string modulemethod){
-  return  clientapi::get().api_loadcontrol(modulemethod)(vobj);
+  return  clientapi::get().api_loadcontrol(modulemethod)(clientapi::get().getpeer()->getpeer());
 } 
-std::string loadmodule(std::string modulemethod,HTTP::OBJ_VALUE &b){
+std::string loadmodule(std::string modulemethod,HTTP::clientpeer &b){
    return clientapi::get().api_loadcontrol(modulemethod)(b);
 } 
 BOOST_DLL_ALIAS(HTTP::clientapi::setclientapi, _setclientapi)

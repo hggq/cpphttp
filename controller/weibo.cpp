@@ -9,42 +9,36 @@
 
 namespace HTTP {
  
-
-
-std::string menubar(HTTP::OBJ_VALUE& obj){
-     obj["home"]="/";
-     obj["news"]="/news";
-     obj["about"]="/about";
-     //viewshow("home/menubar");
+std::string menubar(HTTP::clientpeer & client){
+     client.vobj["home"]="/";
+     client.vobj["news"]="/news";
+     client.vobj["about"]="/about";
    //   echo_json();
    //   echo_json(vobj);
-   echo("<p align=\"center\">newqefqqqq!</p>");
-   echo("<p><a href=\"/weibo/home\">home</p>");
-       echo("<p><a href=\"/weibo/hello\">content</p>");
+   client<<"<p align=\"center\">newqefqqqq!</p>";
+   client<<"<p><a href=\"/weibo/home\">home</p>";
+   client<<"<p><a href=\"/weibo/hello\">content</p>";
     viewshow("about/head");
      return "";
 } 
 
-std::string home( HTTP::OBJ_VALUE& obj){
-    HTTP::clientpeer *peer= clientapi::get().getpeer();
-    auto output=clientapi::get();  
-
-    output<<"hello world!  weibo so file";
-    output<<"<p><a href=\"/weibo/header\">header</a></p>";
-    output<<"<p><a href=\"/weibo/hello\">content</a></p>";
-      output<<"<p>";
-      output<<peer->session["aaa"].to_string();
-      output<<"</p>";
-   //  echo(peer->remote_ip);
-   //  echo(peer->remote_port);
-     output<<peer->remote_ip;
-     output<<peer->remote_port;
-    orm::sms::News  comnews;
+std::string home(HTTP::clientpeer & client){
+    client<<"hello world!  weibo so file";
+    client<<"<p><a href=\"/weibo/header\">header</a></p>";
+    client<<"<p><a href=\"/weibo/hello\">content</a></p>";
+      client<<"<p>";
+      client<<client.session["aaa"];
+      client<<"</p>";
+   // client<<client.remote_ip;
+   // client<<peer.remote_port;
+     client<<client.remote_ip;
+     client<<client.remote_port;
+     orm::sms::News  comnews;
 
     comnews.where("newsid>",1).order("newsid  DESC").limit(10).fetch();
      if(comnews.size()>0){
          for(auto &bb:comnews){
-         echo("<p>"+std::to_string(bb.newsid)+" "+bb.newtitle+" "+bb.adddate+" "+bb.isview+"</p>");
+         client<<"<p>"<<bb.newsid<<" "<<bb.newtitle<<" "<<bb.adddate<<" "<<bb.isview<<"</p>";
          
        }
 
@@ -56,12 +50,12 @@ std::string home( HTTP::OBJ_VALUE& obj){
 
      if(mbc.size()>0){
          for(auto &bb:mbc){
-         echo("<p>"+std::to_string(bb.mid)+" "+bb.addtime+" "+" ["+bb.testdatetime+"] "+bb.testenum+"</p>");
+         client<<"<p>"<<bb.mid<<" "<<bb.addtime<<" "<<" ["<<bb.testdatetime<<"] "<<bb.testenum<<"</p>";
          
        }
 
     }
-    obj["name"]="view name huang";
+    client.vobj["name"]="view name huang";
    //  HTTP::OBJ_VALUE dateobj= mbc.where("mid>",0).limit(5).fetchOBJ();
    //     dateobj.set_array();
    //     for(auto [first,second]:dateobj.as_array()){
@@ -169,68 +163,27 @@ std::string home( HTTP::OBJ_VALUE& obj){
     viewshow("about/show");
      return "";
 } 
-std::string hello(HTTP::OBJ_VALUE& obj){
-    //  std::cout<<"\r\nhello world!ppppppppeeee";
-
-   // echo="hello world%%%5";
-   // echo.append(obj.as_string());
-   // vobj["name"]=obj["liming"];
-   //viewshow("home/menubar");
-   clientapi& pn =clientapi::get();
+std::string hello(clientpeer & client){
  
     std::string abdd="来发撒大阿斯顿发<p><a href=\"/weibo/header\">header</p>";
-   echo(abdd);
+   client<<abdd;
 
 
-   echo("<p><a href=\"/weibo/home\">home</p>");
-       echo("<p><a href=\"/weibo/hello\">content</p>");
+   client<<"<p><a href=\"/weibo/home\">home</p>";
+       client<<"<p><a href=\"/weibo/hello\">content</p>";
 
 
        
-        pn<<abdd;
-        pn<<"常量abaaaaa"<<333333;
-  //      std::cout<<"weibo:"<<std::hex<<&pn.output<<std::endl;
-     //   echo(pn._output);
-//std::cout<<pn.vobj["in"]<<std::endl;
+        client<<abdd;
+        client<<"常量abaaaaa"<<333333;
+ 
  std::cout<<"thread_id2"<<std::this_thread::get_id()<<std::endl;
-    //  std::cout<<pn.output<<std::endl;
-
-        
-   //viewshow("about/jianjie");
-
-
-
-  // echo("wwwwweeebbbb");
-  
-   //  HTTP::client a;
-
-   //  HTTP::OBJ_VALUE parameter;
-   // parameter["name"]="老师短发"; 
-   // parameter["num"]=345;
-   //  a.getjson("https://www.tengbei.net/info.php",parameter);
-   //   a.timeout(30);
-   //   std::cout<<"==============content==============\r\n"<<std::endl;
-   //       try {
-   //     a.send();
-   //          std::cout<<"========"<<a.state.code<<" "<<a.state.codemessage<<std::endl;
-   //    std::cout<<"==============content==============\r\n"<<a.state.content<<std::endl;
-   //    std::cout<<(std::string)a.state.json["liminghui"]<<std::endl;
-
-   //    for(auto &bb:a.state.cookie){
-   //        std::cout<<bb.first<<":"<<bb.second<<std::endl;
-   //    }
-   //  }catch (std::exception& e)  
-   //  {  
-   //      std::cout << e.what() << std::endl;  
-   //  }  
-   
-
-   //viewshow("about/head");
+ 
    return "";
 }
-std::string _init404(HTTP::clientpeer *peer,HTTP::OBJ_VALUE& obj){
-   echo("<p><a href=\"/weibo/home\">home</p>");
-   echo(obj["get"]["aa"]);
+std::string _init404(HTTP::clientpeer &peer){
+   peer<<"<p><a href=\"/weibo/home\">home</p>";
+   peer<<peer.vobj["get"]["aa"];
    return "";
 }
 _SHOWS(menubar,header)
@@ -238,7 +191,6 @@ _SHOW(home)
 
 _SHOW(hello)
 _SHOW(_init404)
-
 
 // BOOST_DLL_ALIAS(HTTP::hello, hello)
 // BOOST_DLL_ALIAS(HTTP::menubar, header)

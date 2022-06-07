@@ -46,6 +46,7 @@ public:
   void send(const char *data,int sendsize);
   void send(unsigned int statecode,std::string &str);
   void send( int statecode,std::string &&);
+  void send( int statecode);
   void sendheader(unsigned int ,unsigned long long );
   void addheader(std::string_view);
   void addheader(const char *);
@@ -71,6 +72,7 @@ public:
                 clientpeer& operator<<(long long a);
                  clientpeer& operator<<(int a);
                  clientpeer& operator<<(short a);
+                  clientpeer& operator<<(unsigned short a);
                 clientpeer& operator<<(unsigned long long a);
                  clientpeer& operator<<(unsigned int a);
                 clientpeer& operator<<(double a);
@@ -86,6 +88,7 @@ public:
   void addcookie(std::string,std::string,int,std::string,std::string);
   void addcookie(std::string,std::string,int);
   void cookietoheader();
+  clientpeer& getpeer();
 public:
   std::list<asio::ssl::stream<asio::ip::tcp::socket>> https_socket;
   std::list<asio::ip::tcp::socket> http_socket;

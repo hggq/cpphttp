@@ -104,7 +104,7 @@ namespace this_coro = asio::this_coro;
 
 // std::map<std::string,SSL_CTX*> g_ctxMap;
 std::map<std::string,std::function<std::shared_ptr<websockets_api>(std::weak_ptr<clientpeer>)>> websocketmethodcallback;
-std::map<std::string,std::function<std::string(HTTP::OBJ_VALUE&)>>  methodcallback;
+std::map<std::string,std::function<std::string(HTTP::clientpeer &)>>  methodcallback;
 std::string serverconfigpath;
 std::map<std::string,std::map<std::string,std::string>>  _serverconfig;
 
@@ -438,7 +438,7 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
         }
     }
     threadlist[thread_id].url[offsetnum]=0x00;
- 
+    
 
     { 
         unsigned int offsetnum=peer->remote_ip.size();
@@ -486,11 +486,14 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                 if(methodcallback.find(modulemethod)!=methodcallback.end()){
                                                 visttype=6;
                                                 // auto sitemodloadis=HTTP::loadcontrol(modulemethod);
-                                                std::string sitecontent=methodcallback[modulemethod](HTTP::vobj);
+                                                //std::string sitecontent=methodcallback[modulemethod](HTTP::vobj);
+                                                std::string sitecontent=methodcallback[modulemethod](peer->getpeer());
+                                                    
                                                     
                                                 if(sitecontent.empty()){
-                                                    if(HTTP::vobj.as_int()==0){
-                                                        peer->send(200,HTTP::_output);
+                                                    if(peer->vobj.as_int()==0){
+                                                      // peer->send(200,HTTP::_output);
+                                                        peer->send(200);
                                                     }
                                                 }else{
                                                     peer->send(200,sitecontent);
@@ -514,11 +517,13 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                         if (stat(moduleso.c_str(),&modso)==0){
                                                 visttype=3;
                                                 auto sitemodloadis=HTTP::loadcontrol(modulemethod);
-                                                std::string sitecontent=sitemodloadis(HTTP::vobj);
+                                                //std::string sitecontent=sitemodloadis(HTTP::vobj);
+                                                std::string sitecontent=sitemodloadis(peer->getpeer());
                                                     
                                                 if(sitecontent.empty()){
-                                                    if(HTTP::vobj.as_int()==0){
-                                                                    peer->send(200,HTTP::_output);
+                                                    if(peer->vobj.as_int()==0){
+                                                                 //   peer->send(200,HTTP::_output);
+                                                      peer->send(200);
                                                     }
                                                 }else{
                                                     peer->send(200,sitecontent);
@@ -536,11 +541,11 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                     modulemethod="default"; 
                                     if(methodcallback.find(modulemethod)!=methodcallback.end()){
                                                 visttype=6;
-                                                std::string sitecontent=methodcallback[modulemethod](HTTP::vobj);
-                                                    
+                                                //std::string sitecontent=methodcallback[modulemethod](HTTP::vobj);
+                                                std::string sitecontent=methodcallback[modulemethod](peer->getpeer());    
                                                 if(sitecontent.empty()){
-                                                    if(HTTP::vobj.as_int()==0){
-                                                        peer->send(200,HTTP::_output);
+                                                    if(peer->vobj.as_int()==0){
+                                                        peer->send(200);
                                                     }
                                                 }else{
                                                     peer->send(200,sitecontent);
@@ -564,11 +569,11 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                         if (stat(moduleso.c_str(),&modso)==0){
                                                 visttype=2;
                                                 auto sitemodloadis=HTTP::loadcontrol(modulemethod);
-                                                std::string sitecontent=sitemodloadis(HTTP::vobj);
-                                                    
+                                                //std::string sitecontent=sitemodloadis(HTTP::vobj);
+                                                std::string sitecontent=sitemodloadis(peer->getpeer());    
                                                 if(sitecontent.empty()){
-                                                    if(HTTP::vobj.as_int()==0){
-                                                                    peer->send(200,HTTP::_output);
+                                                    if(peer->vobj.as_int()==0){
+                                                            peer->send(200);
                                                     }
                                                 }else{
                                                     peer->send(200,sitecontent);
@@ -612,8 +617,9 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                         }
                          
                         
-                        HTTP::_output.clear();  
-
+                        // HTTP::_output.clear();  
+                         peer->_output.clear(); 
+                         peer->vobj.clear(); 
                          if(peer->header->state.keeplive&&peer->keeplive){
                                 peer->keeplivemax-=1;
                                 peer->header->headerfinish=0;

@@ -117,7 +117,9 @@ namespace HTTP {
          vkey.append(vstr);
          headerlists.emplace_back(vkey);
    }
-
+   clientpeer& clientpeer::getpeer(){
+          return *this;
+   }
     void clientpeer::parse_session(){
          if(header->cookie.check("CPPSESSID")){
                std::string root_path;
@@ -328,6 +330,10 @@ namespace HTTP {
                     _output.append(std::to_string(a));
                     return *this;
                 }
+                 clientpeer& clientpeer::operator<<(unsigned short a){
+                    _output.append(std::to_string(a));
+                    return *this;
+                }
                 clientpeer& clientpeer::operator<<(unsigned long long a){
                     _output.append(std::to_string(a));
                     return *this;
@@ -398,6 +404,76 @@ namespace HTTP {
        lock.unlock();
   }   
 
+  void clientpeer::send(int statecode){
+                    std::string outstr;
+                    outstr.append("HTTP/1.1 ");
+
+                    switch (statecode) {
+                        case 500:
+                            outstr.append("500 Internal Server Error\r\n");
+                            _output.append("<hr />500 Internal Server Error");
+                            break;   
+                        case 404:
+                            outstr.append("404 Not Found\r\n");
+                             _output.append("<hr />404 Not Found");
+                            break;   
+                        case 400:
+                            outstr.append("404 Bad Request\r\n");
+                            break;
+                        case 301:
+                            outstr.append("301 Moved Permanently\r\n");
+                            keeplive=false;
+                            cookietoheader();
+                            for(auto &sh:headerlists){
+                                outstr.append(sh);
+                                if(sh.back()!='\n'){
+                                   outstr.append("\r\n");     
+                                }
+                            }
+                            
+                            outstr.append("Connection: close\r\n");
+                            outstr.append("\r\n");
+                            if(isssl){
+                                asio::write(https_socket.front(), asio::buffer(outstr));
+                            }else{
+                                asio::write(http_socket.front(), asio::buffer(outstr));
+                            }
+                            return;
+                            break;       
+                        case 200:
+                                outstr.append("200 OK\r\n");
+                                break; 
+                                
+                    }  
+                    outstr.append("Content-Type: text/html; charset=UTF-8\r\n");
+                    if(header->state.keeplive){
+                        outstr.append("Connection: keep-alive\r\n");
+                        keeplive=true;
+                    }else{
+                        outstr.append("Connection: close\r\n");
+                    }
+                    cookietoheader();
+                     for(auto &sh:headerlists){
+                                outstr.append(sh);
+                                if(sh.back()!='\n'){
+                                   outstr.append("\r\n");     
+                                }
+                    }
+                    outstr.append("Content-Length: ");
+                    outstr.append(std::to_string(_output.size()));
+                    outstr.append("\r\n\r\n");
+                    //outstr.append(str);
+                    if(isssl){
+                        asio::write(https_socket.front(), asio::buffer(outstr));
+                    }else{
+                        asio::write(http_socket.front(), asio::buffer(outstr));
+                    }
+                    if(isssl){
+                        asio::write(https_socket.front(), asio::buffer(_output));
+                    }else{
+                        asio::write(http_socket.front(), asio::buffer(_output));
+                    }
+                } 
 
 
                 void clientpeer::send(unsigned int statecode,std::string &str){

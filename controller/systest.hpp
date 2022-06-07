@@ -3,81 +3,68 @@
 #include <thread>
 namespace HTTP {
 
-std::string home(HTTP::OBJ_VALUE& obj){
-    echo("hello world! this use systest inline callback");
-    echo("<p><a href=\"/weibo/header\">header</a></p>");
-    echo("<p><a href=\"/weibo/hello\">content</a></p>");
-      HTTP::clientpeer *peer= clientapi::get().getpeer();
-      echo(peer->session["aaa"].to_string());
+std::string home(clientpeer& client){
+    client<<"hello world! this use systest inline callback";
+    client<<"<p><a href=\"/weibo/header\">header</a></p>";
+    client<<"<p><a href=\"/weibo/hello\">content</a></p>";
+    client<<client.session["aaa"];
     orm::sms::News  comnews;
 
     comnews.where("newsid>",63597).order("newsid  DESC").limit(10).fetch();
      if(comnews.size()>0){
          for(auto &bb:comnews){
-         echo("<p>"+std::to_string(bb.newsid)+" "+bb.newtitle+" "+bb.adddate+" "+bb.isview+"</p>");
-         
+         client<<"<p>"<<bb.newsid<<" "<<bb.newtitle<<" "<<bb.adddate<<" "<<bb.isview<<"</p>";
        }
 
     }
     orm::Moduleauth  mbc;
     mbc.where("mid>",0).fetch();
-    echo(mbc.getstrCol("name"));
-    echo(mbc.getstrCol("name",true));
+    client<<mbc.getstrCol("name");
+    client<<mbc.getstrCol("name",true);
     auto ww=mbc.getCol<std::string>("name");
           for(auto &bb:ww){
-         echo("<p>"+bb+"</p>");
+         client<<"<p>"<<bb<<"</p>";
      }
-     obj["name"]="test inline callback";
+    client.vobj["name"]="test inline callback";
     viewshow("about/head");
     //send_file("viewmodule.html");
    return "";
 }
 
-std::string helloaa(HTTP::OBJ_VALUE& obj){
- HTTP::clientpeer *peer= clientapi::get().getpeer();
-    auto output=clientapi::get();  
+std::string hellotest(clientpeer& peer){
 
-    output<<"hello world!  weibo so file";
-    output<<"<p><a href=\"/weibo/header\">header</a></p>";
-    output<<"<p><a href=\"/weibo/hello\">content</a></p>";
+      peer<<"hello world!  weibo so file";
+      peer<<"<p><a href=\"/weibo/header\">header</a></p>";
+      peer<<"<p><a href=\"/weibo/hello\">content</a></p>";
 
-   
-   //  echo(peer->remote_ip);
-   //  echo(peer->remote_port);
-     output<<peer->remote_ip;
-     output<<peer->remote_port;
-    orm::sms::News  comnews;
+      peer<<peer.remote_ip;
+      peer<<peer.remote_port;
+      orm::sms::News  comnews;
 
-    peer->session["aaa"]=1111;
-
-    peer->save_session();
+    peer.session["aaa"]=1111;
+    peer.save_session();
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
-
    // peer->clear_session();
-      peer->addcookie("names","wwwww",7200*24,peer->header->host,"/");
-      peer->addheader("server: cpphttp");
+      peer.addcookie("names","wwwww",7200*24,peer.header->host,"/");
+      peer.addheader("server: cpphttp");
+
     comnews.where("newsid>",1).order("newsid  DESC").limit(10).fetch();
      if(comnews.size()>0){
          for(auto &bb:comnews){
-         echo("<p>"+std::to_string(bb.newsid)+" "+bb.newtitle+" "+bb.adddate+" "+bb.isview+"</p>");
-         
+         peer<<"<p>"<<bb.newsid<<" "<<bb.newtitle<<" "<<bb.adddate<<" "<<bb.isview<<"</p>";
        }
-
     }
 
     orm::Moduleauth  mbc;
-
     mbc.where("mid>",0).fetch();
 
      if(mbc.size()>0){
          for(auto &bb:mbc){
-         echo("<p>"+std::to_string(bb.mid)+" "+bb.addtime+" "+" ["+bb.testdatetime+"] "+bb.testenum+"</p>");
-         
+         peer<<"<p>"<<bb.mid<<" "<<bb.addtime<<"  ["<<bb.testdatetime<<"] "<<bb.testenum<<"</p>";
        }
-
     }
-    obj["name"]="view name huang";
+    peer.vobj["name"]="view name huang";
     
     viewshow("about/show");
     //send_file("viewmodule.html");

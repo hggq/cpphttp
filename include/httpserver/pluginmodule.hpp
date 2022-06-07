@@ -28,21 +28,29 @@ typedef boost::function<mysqlx::RowResult(std::string&,size_t)> mysql_callbackan
 typedef boost::function<mysqlx::SqlResult(std::string&,size_t)> mysql_callbacksql_t;
 typedef boost::function<bool(std::list<std::string>&,size_t)> mysql_callbacksql_rollback;
 typedef boost::function<std::string(HTTP::OBJ_VALUE&)> method_callback_t;
-typedef boost::function<std::string(HTTP::clientpeer*)> www_method_call;
+typedef boost::function<std::string(HTTP::clientpeer&)> www_method_call;
 typedef boost::function<boost::function<std::string(HTTP::OBJ_VALUE&)>(std::string)> modulemethod_callback_t;
-typedef boost::function<boost::function<std::string(HTTP::clientpeer*)>(std::string)> module_method_call;
+typedef boost::function<boost::function<std::string(HTTP::clientpeer&)>(std::string)> module_method_call;
 
 std::string siteviewpath="module/view/";
 std::string sitecontrolpath="module/controller/";
 std::map<std::size_t,std::vector<std::string>>  sharedmethodchache;
-std::map<std::size_t,method_callback_t>  sharedpathchache,controlpathchache;
+std::map<std::size_t,method_callback_t>  sharedpathchache;//,controlpathchache;
+std::map<std::size_t,www_method_call>  controlpathchache;
 std::mutex loadcontrolmtx,loadviewmtx,moudulecachemethod;
-std::string httpempty(HTTP::OBJ_VALUE& a){
-    return "<p>--.so image not found--</p>";
+std::string httpviewempty(HTTP::OBJ_VALUE& a){
+    return "<p>--view not found--</p>";
 }
-std::string echoempty(HTTP::OBJ_VALUE& a){
+std::string echoviewempty(HTTP::OBJ_VALUE& a){
     return "";
 }
+std::string httpempty(HTTP::clientpeer& a){
+    return "<p>--.so image not found--</p>";
+}
+std::string echoempty(HTTP::clientpeer& a){
+    return "";
+}
+
 template<typename T>
 T& get_local_global(){
    thread_local static T instance;
@@ -77,10 +85,12 @@ method_callback_t loadviewnotcall(std::string);
 method_callback_t loadviewfetchnotcall(std::string);
 method_callback_t loadviewobjcall(std::string);
 
-method_callback_t loadcontrol(std::string);
-method_callback_t modulesendfile(std::string);
-method_callback_t modulesenddata(std::string);//websocket使用
-std::map<std::string,modulemethod_callback_t> rendercallback;
+www_method_call loadcontrol(std::string);
+www_method_call modulesendfile(std::string);
+www_method_call modulesenddata(std::string);//websocket使用
+//std::map<std::string,modulemethod_callback_t> rendercallback;
+std::map<std::string,module_method_call> rendercallback;
+
 std::map<std::string,echo_callback_t> _renderechocallback;
 std::map<std::string,echo_callbackand_t> _renderechocallbackand;
 std::map<std::string,mysql_callbackand_t> _mysqlselectcallback;
@@ -88,15 +98,15 @@ std::map<std::string,mysql_callbacksql_t> _mysqlplugineditcallback;
 std::map<std::string,mysql_callbacksql_rollback> _mysqlplugicommitcall;
 std::once_flag rendercallback_flag;
 
-method_callback_t modulesendfile(std::string name){
+www_method_call modulesendfile(std::string name){
     return httpempty;
 }
-method_callback_t modulesenddata(std::string name){
+www_method_call modulesenddata(std::string name){
     return httpempty;
 }
 void echoassign(std::string name){
    // std::cout<<"mb:"<<name<<std::endl;
-    _output.append(std::move(name));
+    _threadclientpeer->_output.append(std::move(name));
     
 }
 void send_data(std::string name);
@@ -106,7 +116,7 @@ void send_data(unsigned int statecode,std::string &name);
 
 void echo_flush(std::string name){
    // std::cout<<"mb:"<<name<<std::endl;
-    _output.append(std::move(name));
+    _threadclientpeer->_output.append(std::move(name));
     //now send data
 }
 HTTP::clientpeer* getpeer(){
@@ -114,7 +124,7 @@ HTTP::clientpeer* getpeer(){
 }
 void echoassignand(std::string& name){
    // std::cout<<"mb:"<<name<<std::endl;
-    _output.append(name);
+    _threadclientpeer->_output.append(name);
      
 }
 void send_file(std::string name);
@@ -144,27 +154,34 @@ void setcookie(std::string name,std::string &value,std::string path="/",unsigned
 }
 
 HTTP::OBJ_VALUE getsession(std::string keyname){
-    HTTP::OBJ_VALUE b;
-    return b;
+    _threadclientpeer->session[keyname];
+    return _threadclientpeer->session[keyname];
 }
 void setsession(std::string keyname,std::string value){
-    
+    _threadclientpeer->session[keyname]=value;
 }
 void setsession(std::string keyname,std::string &value){
-    
+     _threadclientpeer->session[keyname]=value;
     
 }
 void setsession(HTTP::OBJ_VALUE &value){
+    if(value.is_array()){
+         for(auto iter:value.as_array()){
+         _threadclientpeer->session[value.getkeyname(iter.first)]=iter.second;
+        }
+    }else{
+        _threadclientpeer->session.push(value);
+    }
     
 }
-std::string renderjsonfetchtosend(HTTP::OBJ_VALUE& b){
+std::string renderjsonfetchtosend(HTTP::OBJ_VALUE & b){
         
-        _output.append(b.tojson());
+        _threadclientpeer->_output.append(b.tojson());
         return "";
 }
-std::string renderjsonlocaltosend(HTTP::OBJ_VALUE& b){
+std::string renderjsonlocaltosend(HTTP::OBJ_VALUE & b){
         
-        _output.append(vobj.tojson());
+        _threadclientpeer->_output.append(_threadclientpeer->vobj.tojson());
         return "";
 }
 method_callback_t sendjsoncall(std::string modulemethod){
@@ -180,10 +197,10 @@ method_callback_t sendjsoncall(std::string modulemethod){
                 return renderjsonlocaltosend;
             }else{
                 _output.append(modulemethod);    
-                return echoempty;
+                return echoviewempty;
             }  
         } 
-        return echoempty;
+        return echoviewempty;
 }
  mysqlx::SqlResult domysqleditexecute(std::string &sql,size_t dbhash){
                 auto iter=mysqldbpoolglobal.find(dbhash);
@@ -257,7 +274,7 @@ method_callback_t viewmodulecreate(std::string module,std::string name){
                             }
                             if(lib.has(name))  
                             {
-                                return std::move(boost::dll::import_alias<std::string(HTTP::OBJ_VALUE&)>(shared_library_path, name ));
+                                return std::move(boost::dll::import_alias<std::string(HTTP::OBJ_VALUE &)>(shared_library_path, name ));
                             }
                     }
             }catch (std::exception& e)  
@@ -266,11 +283,11 @@ method_callback_t viewmodulecreate(std::string module,std::string name){
                 std::cout << e.what() << std::endl; 
                 std::cout<<" create fail:"<<name<<std::endl; 
             }  
-        return httpempty;
+        return httpviewempty;
 }
 
 
-method_callback_t controlmodulecreate(std::string module,std::string name,size_t tt){
+www_method_call controlmodulecreate(std::string module,std::string name,size_t tt){
         boost::dll::fs::path shared_library_path =module;
         size_t t=std::hash<std::string>{}(module);
          auto iter=sharedmethodchache.find(t);
@@ -300,10 +317,10 @@ method_callback_t controlmodulecreate(std::string module,std::string name,size_t
 
                              if(lib.has(name))  
                             {
-                               controlpathchache[tt]=std::move(boost::dll::import_alias<std::string(HTTP::OBJ_VALUE&)>(shared_library_path, name ));
+                               controlpathchache[tt]=std::move(boost::dll::import_alias<std::string(HTTP::clientpeer &)>(shared_library_path, name ));
                                return controlpathchache[tt]; 
                             }else if(lib.has("_init404")){
-                                controlpathchache[tt]=std::move(boost::dll::import_alias<std::string(HTTP::OBJ_VALUE&)>(shared_library_path, "_init404" ));
+                                controlpathchache[tt]=std::move(boost::dll::import_alias<std::string(HTTP::clientpeer &)>(shared_library_path, "_init404" ));
                                return controlpathchache[tt]; 
                             }
                                    
@@ -322,7 +339,7 @@ method_callback_t controlmodulecreate(std::string module,std::string name,size_t
         return httpempty;
 }
 
-method_callback_t loadcontrol(std::string modulemethod){
+www_method_call loadcontrol(std::string modulemethod){
         std::string hash;
  
         std::string path;
@@ -485,14 +502,14 @@ method_callback_t loadview(std::string modulemethod){
 
 }
 method_callback_t loadviewnotcall(std::string modulemethod){
-        _output.append(loadview(modulemethod)(vobj));
-        return httpempty;
+        _threadclientpeer->_output.append(loadview(modulemethod)(_threadclientpeer->vobj));
+        return httpviewempty;
 
 }
 std::string renderviewobjfetch(HTTP::OBJ_VALUE& b){
         if(!_outputtemp.empty()){
             if(_outputtemp.size()<30){
-                _output.append(loadview(_outputtemp)(b));  
+                _threadclientpeer->_output.append(loadview(_outputtemp)(b));  
             }    
         }
         
@@ -515,7 +532,7 @@ std::string renderviewfetch(HTTP::OBJ_VALUE& a){
 method_callback_t loadviewfetchnotcall(std::string modulemethod){
   
         _outputtemp.clear();
-        _outputtemp.append(loadview(std::move(modulemethod))(vobj));
+        _outputtemp.append(loadview(std::move(modulemethod))(_threadclientpeer->vobj));
         return renderviewfetch;
 
 }
@@ -632,7 +649,8 @@ void controlmoduleclear(std::string module,std::string method){
 
 std::string loadmodule(std::string modulemethod){
     try {
-        return loadcontrol(modulemethod)(vobj);
+
+        return loadcontrol(modulemethod)(_threadclientpeer->getpeer());
     }catch (std::exception& e)  
     {  
         return e.what();
@@ -640,7 +658,7 @@ std::string loadmodule(std::string modulemethod){
     }  
    
 } 
-std::string loadmodule(std::string modulemethod,HTTP::OBJ_VALUE &b){
+std::string loadmodule(std::string modulemethod,HTTP::clientpeer& b){
     try {
         return loadcontrol(modulemethod)(b);
     }catch (std::exception& e)  
@@ -664,7 +682,7 @@ void viewshow(std::string modulemethod){
 std::string viewfetch(std::string modulemethod){
  
   try {
-      return loadviewfetchnotcall(modulemethod)(vobj);
+      return loadviewfetchnotcall(modulemethod)(_threadclientpeer->vobj);
 
     }catch (std::exception& e)  
     {  
@@ -702,9 +720,9 @@ void echo_json(std::string b){
 void echo_json(){
        sendjsoncall("application/json");
 }
-void echo_json(HTTP::OBJ_VALUE &obj){
+void echo_json(HTTP::OBJ_VALUE &b){
  
-      sendjsoncall("")(obj);
+      sendjsoncall("")(b);
 }
 
 
@@ -728,31 +746,31 @@ void echo_json(HTTP::OBJ_VALUE &obj){
    }  
 
 void echo(std::string &b){
-_output.append(b);  
+_threadclientpeer->_output.append(b);  
      
 }
 void echo(int b){
-_output.append(std::to_string(b));  
+_threadclientpeer->_output.append(std::to_string(b));  
      
 }
 void echo(unsigned int b){
-_output.append(std::to_string(b));  
+_threadclientpeer->_output.append(std::to_string(b));  
 }
 void echo(long long b){
-_output.append(std::to_string(b));  
+_threadclientpeer->_output.append(std::to_string(b));  
      
 }
 void echo(unsigned long long b){
-     _output.append(std::to_string(b));     
+     _threadclientpeer->_output.append(std::to_string(b));     
 }
 void echo(std::string &&b){
-      _output.append(b);
+      _threadclientpeer->_output.append(b);
 }
 void echo(HTTP::OBJ_VALUE &b){
-     _output.append(b.to_string());
+     _threadclientpeer->_output.append(b.to_string());
 }
 std::string& getoutput(){
-     return _output;
+     return _threadclientpeer->_output;
 } 
 
 }

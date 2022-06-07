@@ -16,7 +16,9 @@
 #include <unistd.h>
 #include <cstdlib>
 #include "httpsocommonapi.h" 
-//g++ cache/view/about/head.cpp -o module/view/about/head.so -shared -fPIC -std=c++20 -Iinclude/httpserver  src/httpserver/request.cpp   -lssl -lcrypto -ldl -I/usr/local/opt/openssl/include -L/usr/local/opt/openssl/lib -lboost_filesystem src/httpserver/httpsocommonapi.cpp -lmysqlcppconn8
+
+//g++ cache/view/about/head.cpp -o module/view/about/head.so -shared -fPIC -std=c++20 -I../../include ../../src/request.cpp   -lssl -lcrypto -ldl -I/usr/local/opt/openssl/include -L/usr/local/opt/openssl/lib -lboost_filesystem
+
   namespace HTTP {
        
         std::string view(HTTP::OBJ_VALUE &obj){
