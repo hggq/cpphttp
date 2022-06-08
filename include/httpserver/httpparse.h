@@ -48,7 +48,7 @@
 #include "request.h"
 // #include "WebSocket.h"
 
-namespace HTTP { 
+namespace http { 
     struct headstate_t{
                  bool gzip=false;
                  bool deflate=false;
@@ -164,10 +164,10 @@ namespace HTTP {
             unsigned int changetype=0;
             std::FILE *  uprawfile=NULL;
 
-            HTTP::OBJ_VALUE get;
-            HTTP::OBJ_VALUE post;
-            HTTP::OBJ_VALUE files;
-            HTTP::OBJ_VALUE json;
+            http::OBJ_VALUE get;
+            http::OBJ_VALUE post;
+            http::OBJ_VALUE files;
+            http::OBJ_VALUE json;
             Cookie cookie;
 
             std::string urlpath;  

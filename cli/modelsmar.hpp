@@ -17,7 +17,7 @@ namespace fs = std::filesystem;
 
 int main(){
      
-     HTTP::controllerparse ctp;
+     http::controllerparse ctp;
     fs::path current_path=fs::current_path();
 
     std::cout<<"\033[36m 🍄 current path:\033[0m \033[1m\033[35m"<<current_path.string()<<"\033[0m"<<std::endl;

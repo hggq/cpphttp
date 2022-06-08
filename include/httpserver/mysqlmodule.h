@@ -11,7 +11,7 @@
 #include <queue>
 #include <mysqlx/xdevapi.h>
 
-namespace HTTP {
+namespace http {
     //   std::mutex sessedit_mutex,sessselect_mutex;
       class mysqllinkpool{
             public:

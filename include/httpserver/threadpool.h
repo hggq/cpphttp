@@ -45,7 +45,7 @@
 #include <stdexcept>
 #include "Clientpeer.h"
 
-namespace HTTP {
+namespace http {
     
     
      struct threadinfo_t{

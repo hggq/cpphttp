@@ -13,12 +13,12 @@
 #include <string_view>
 #include <memory>
 #include "Clientpeer.h"
-namespace HTTP { 
+namespace http { 
 class clientpeer;
 }
 class BOOST_SYMBOL_VISIBLE websockets_api {
 public:
-   websockets_api(unsigned int t,unsigned char s,std::weak_ptr<HTTP::clientpeer> p):timeloop_num(t),state(s),weakpeer(p){}
+   websockets_api(unsigned int t,unsigned char s,std::weak_ptr<http::clientpeer> p):timeloop_num(t),state(s),weakpeer(p){}
    virtual void onopen()  = 0;
    virtual void onmessage(std::string_view) = 0;
    virtual void onfiles(std::string_view) = 0;
@@ -30,7 +30,7 @@ public:
    virtual ~websockets_api() {}
    unsigned int timeloop_num;
    unsigned char state;
-   std::weak_ptr<HTTP::clientpeer>  weakpeer;
+   std::weak_ptr<http::clientpeer>  weakpeer;
 };
 //]
    

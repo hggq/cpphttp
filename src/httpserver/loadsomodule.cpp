@@ -15,13 +15,13 @@
 #include "Clientpeer.h"
 
 
-namespace HTTP {
+namespace http {
 std::mutex loadcontrolmtx,loadviewmtx,moudulecachemethod;  
 
-std::string httpempty(HTTP::OBJ_VALUE& a){
+std::string httpempty(http::OBJ_VALUE& a){
     return "<p>--.so image not found--</p>";
 }
-std::string echoempty(HTTP::OBJ_VALUE& a){
+std::string echoempty(http::OBJ_VALUE& a){
     return "";
 }
 
@@ -74,8 +74,8 @@ void setcookie(std::string name,std::string &value,std::string path="/",unsigned
     //_header.emplace_back(name);
 }
 
-HTTP::OBJ_VALUE getsession(std::string keyname){
-    HTTP::OBJ_VALUE b;
+http::OBJ_VALUE getsession(std::string keyname){
+    http::OBJ_VALUE b;
     return b;
 }
 void setsession(std::string keyname,std::string value){
@@ -85,15 +85,15 @@ void setsession(std::string keyname,std::string &value){
     
     
 }
-void setsession(HTTP::OBJ_VALUE &value){
+void setsession(http::OBJ_VALUE &value){
     
 }
-std::string renderjsonfetchtosend(HTTP::OBJ_VALUE& b){
+std::string renderjsonfetchtosend(http::OBJ_VALUE& b){
         
         _output.append(b.tojson());
         return "";
 }
-std::string renderjsonlocaltosend(HTTP::OBJ_VALUE& b){
+std::string renderjsonlocaltosend(http::OBJ_VALUE& b){
         
         _output.append(vobj.tojson());
         return "";
@@ -178,7 +178,7 @@ method_callback_t viewmodulecreate(std::string module,std::string name){
                             }
                             if(lib.has(name))  
                             {
-                                return std::move(boost::dll::import_alias<std::string(HTTP::OBJ_VALUE&)>(shared_library_path, name ));
+                                return std::move(boost::dll::import_alias<std::string(http::OBJ_VALUE&)>(shared_library_path, name ));
                             }
                     }
             }catch (std::exception& e)  
@@ -263,7 +263,7 @@ method_callback_t controlmodulecreate(std::string module,std::string name,size_t
 
                              if(lib.has(name))  
                             {
-                               controlpathchache[tt]=std::move(boost::dll::import_alias<std::string(HTTP::OBJ_VALUE&)>(shared_library_path, name ));
+                               controlpathchache[tt]=std::move(boost::dll::import_alias<std::string(http::OBJ_VALUE&)>(shared_library_path, name ));
                                if(_initcallback){
                                    _initcallback.clear();
                                } 
@@ -281,7 +281,7 @@ method_callback_t controlmodulecreate(std::string module,std::string name,size_t
                                }    
                                return controlpathchache[tt]; 
                             }else if(lib.has("_init404")){
-                                controlpathchache[tt]=std::move(boost::dll::import_alias<std::string(HTTP::OBJ_VALUE&)>(shared_library_path, "_init404" ));
+                                controlpathchache[tt]=std::move(boost::dll::import_alias<std::string(http::OBJ_VALUE&)>(shared_library_path, "_init404" ));
                                if(_initcallback){
                                    _initcallback.clear();
                                } 
@@ -486,7 +486,7 @@ method_callback_t loadviewnotcall(std::string modulemethod){
         return httpempty;
 
 }
-std::string renderviewobjfetch(HTTP::OBJ_VALUE& b){
+std::string renderviewobjfetch(http::OBJ_VALUE& b){
         if(!_outputtemp.empty()){
             if(_outputtemp.size()<30){
                 _output.append(loadview(_outputtemp)(b));  
@@ -504,7 +504,7 @@ method_callback_t loadviewobjcall(std::string modulemethod){
 
 }
 
-std::string renderviewfetch(HTTP::OBJ_VALUE& a){
+std::string renderviewfetch(http::OBJ_VALUE& a){
         std::string temp(_outputtemp);
         _outputtemp.clear();
         return std::move(temp);
@@ -638,7 +638,7 @@ std::string loadmodule(std::string modulemethod){
     }  
    
 } 
-std::string loadmodule(std::string modulemethod,HTTP::OBJ_VALUE &b){
+std::string loadmodule(std::string modulemethod,http::OBJ_VALUE &b){
     try {
         return loadcontrol(modulemethod)(b);
     }catch (std::exception& e)  
@@ -671,7 +671,7 @@ std::string viewfetch(std::string modulemethod){
         return "not found:"+modulemethod; 
     }   
 } 
-void viewshow(std::string modulemethod,HTTP::OBJ_VALUE &b){
+void viewshow(std::string modulemethod,http::OBJ_VALUE &b){
     try {
        loadviewobjcall(modulemethod)(b);
     }catch (std::exception& e)  
@@ -681,7 +681,7 @@ void viewshow(std::string modulemethod,HTTP::OBJ_VALUE &b){
     }  
    
 } 
-std::string viewfetch(std::string modulemethod,HTTP::OBJ_VALUE &b){
+std::string viewfetch(std::string modulemethod,http::OBJ_VALUE &b){
  
   try {
       return loadview(modulemethod)(b);
@@ -700,7 +700,7 @@ void echo_json(std::string b){
 void echo_json(){
        sendjsoncall("application/json");
 }
-void echo_json(HTTP::OBJ_VALUE &obj){
+void echo_json(http::OBJ_VALUE &obj){
  
       sendjsoncall("")(obj);
 }
@@ -779,7 +779,7 @@ void echo(std::string &&b){
        // std::cout << e.what() << std::endl;  
     }  
 }
-void echo(HTTP::OBJ_VALUE &b){
+void echo(http::OBJ_VALUE &b){
      
     try {
            echoassign(b.to_string());

@@ -2,7 +2,7 @@
 #define ORM_DEFAULT_MARLISTBASEMATA_H
 /*
 *This file is auto create from cli
-*本文件为自动生成 Tue, 17 May 2022 10:05:14 GMT
+*本文件为自动生成 Wed, 08 Jun 2022 04:31:40 GMT
 ***/
 #include<iostream>
 #include <cstdio>
@@ -86,7 +86,7 @@ break;
         		case 0: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.mid=( int )_row[i];
+				 metatemp.mid=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 1: 
@@ -98,7 +98,7 @@ break;
 		case 2: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.phone=( long long )_row[i];
+				 metatemp.phone=_row[i].get<int64_t>();
 		 } 
 			 break;
 		case 3: 
@@ -116,7 +116,7 @@ break;
 		case 5: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.stateus=( int )_row[i];
+				 metatemp.stateus=_row[i].get<unsigned>();
 		 } 
 			 break;
 
@@ -139,7 +139,7 @@ break;
         		case 0: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.mid=( int )_row[i];
+				 metatemp.mid=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 1: 
@@ -151,7 +151,7 @@ break;
 		case 2: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.phone=( long long )_row[i];
+				 metatemp.phone=_row[i].get<int64_t>();
 		 } 
 			 break;
 		case 3: 
@@ -169,7 +169,7 @@ break;
 		case 5: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.stateus=( int )_row[i];
+				 metatemp.stateus=_row[i].get<unsigned>();
 		 } 
 			 break;
 

@@ -13,7 +13,7 @@
 *  _GET["aabb"]["bdss"];
 */
 
-namespace HTTP 
+namespace http 
 {
     enum OBJ_TYPE
     {
@@ -373,6 +373,6 @@ namespace HTTP
     int JSON_ARRAY(std::string &,OBJ_ARRAY &,int);
 
 }
-std::ostream& operator<<(std::ostream&, const HTTP::OBJ_VALUE&);
-std::ostream& operator<<(std::ostream&, const HTTP::OBJ_ARRAY&);
+std::ostream& operator<<(std::ostream&, const http::OBJ_VALUE&);
+std::ostream& operator<<(std::ostream&, const http::OBJ_ARRAY&);
 #endif

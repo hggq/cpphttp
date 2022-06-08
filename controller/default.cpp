@@ -9,9 +9,9 @@
 */
 
  
-namespace HTTP {
+namespace http {
  
-std::string menubar(HTTP::clientpeer& client){
+std::string menubar(http::clientpeer& client){
      client.vobj["home"]="/";
      client.vobj["news"]="/news";
      client.vobj["about"]="/about";
@@ -23,12 +23,12 @@ std::string menubar(HTTP::clientpeer& client){
      return "";
 } 
 
-std::string home(HTTP::clientpeer& client){
+std::string home(http::clientpeer& client){
     client<<"hello world!";
     return "";
 } 
 
-std::string _init404(HTTP::clientpeer& client){
+std::string _init404(http::clientpeer& client){
    client<<"<p><a href=\"/weibo/home\">home</p>";
    client<<client.vobj["get"]["aa"];
    return "";
@@ -38,8 +38,8 @@ _SHOW(home)
 _SHOW(_init404)
 
 
-// BOOST_DLL_ALIAS(HTTP::hello, hello)
-// BOOST_DLL_ALIAS(HTTP::menubar, header)
+// BOOST_DLL_ALIAS(http::hello, hello)
+// BOOST_DLL_ALIAS(http::menubar, header)
 
 
 }

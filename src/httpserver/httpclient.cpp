@@ -26,7 +26,7 @@
 #include "gzip.h"
 
 
-namespace HTTP 
+namespace http 
 {
         client& client::get(std::string_view url){
           requesttype=0;    
@@ -40,7 +40,7 @@ namespace HTTP
           }
           return *this;
       }
-      client& client::get(std::string_view url,HTTP::OBJ_VALUE param){
+      client& client::get(std::string_view url,http::OBJ_VALUE param){
            requesttype=0;    
            data=std::move(param);
           if(url.length()>0){
@@ -66,7 +66,7 @@ namespace HTTP
           }
           return *this;
       }  
-       client& client::post(std::string_view url,HTTP::OBJ_VALUE param){
+       client& client::post(std::string_view url,http::OBJ_VALUE param){
           requesttype=1;  
           parameter=std::move(param);
           if(url.length()>0){
@@ -93,7 +93,7 @@ namespace HTTP
           }
           return *this;
       }
-     client& client::getjson(std::string_view url,HTTP::OBJ_VALUE param){
+     client& client::getjson(std::string_view url,http::OBJ_VALUE param){
            requesttype=0;  
            parsetojson=1;     
            data=std::move(param);
@@ -123,7 +123,7 @@ namespace HTTP
           }
           return *this;
       }  
-      client& client::postjson(std::string_view url,HTTP::OBJ_VALUE param){
+      client& client::postjson(std::string_view url,http::OBJ_VALUE param){
           requesttype=1;  
           header["Content-Type"]="application/json";
            
@@ -159,7 +159,7 @@ namespace HTTP
           return *this;
       } 
 
-      client& client::send(HTTP::OBJ_VALUE param){
+      client& client::send(http::OBJ_VALUE param){
             data=std::move(param);
             if(requesttype==1){
                 buildcontent();

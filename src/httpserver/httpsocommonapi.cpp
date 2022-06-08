@@ -6,7 +6,7 @@
 #include <mysqlx/xdevapi.h>
 #include "Clientpeer.h"
 #include "httpsocommonapi.h" 
- namespace HTTP { 
+ namespace http { 
   // thread_local HTTP::OBJ_VALUE clientapi::vobj=NULL;    
    //  thread_local std::string clientapi::_output{};    
  //thread_local std::string clientapi::output={}; 

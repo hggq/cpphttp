@@ -20,7 +20,7 @@
 #include <vector>
 #include <list>
 #include <functional>
-namespace HTTP 
+namespace http 
 {
 
         unsigned long long hash_objkey(const std::string& key){
@@ -2205,16 +2205,16 @@ namespace HTTP
 
 
  
-std::ostream& operator<<(std::ostream& os, const HTTP::OBJ_VALUE& v)
+std::ostream& operator<<(std::ostream& os, const http::OBJ_VALUE& v)
 {    
     switch(v.type())
     {
  
-        case HTTP::INT:
+        case http::INT:
             os << (long long)v;
             break;
         
-        case HTTP::FLOAT:
+        case http::FLOAT:
           
            {
 
@@ -2243,16 +2243,16 @@ std::ostream& operator<<(std::ostream& os, const HTTP::OBJ_VALUE& v)
            }
 
             break;        
-        case HTTP::NIL:
+        case http::NIL:
             os << "null";
             break;
         
-        case HTTP::STRING:
-            os<<'"'<<HTTP::JSON_UTF8_TO_ASCII(v.as_string())<<'"';               
+        case http::STRING:
+            os<<'"'<<http::JSON_UTF8_TO_ASCII(v.as_string())<<'"';               
             break;
         
  
-        case HTTP::ARRAY:
+        case http::ARRAY:
             os << v.as_array();                
             break;
         
@@ -2261,7 +2261,7 @@ std::ostream& operator<<(std::ostream& os, const HTTP::OBJ_VALUE& v)
 }
  
  
-std::ostream& operator<<(std::ostream& os, const HTTP::OBJ_ARRAY& a)
+std::ostream& operator<<(std::ostream& os, const http::OBJ_ARRAY& a)
 {   
     unsigned int n=0;
     
@@ -2284,7 +2284,7 @@ std::ostream& operator<<(std::ostream& os, const HTTP::OBJ_ARRAY& a)
                             }
                             
                       }else if(second.is_string()){
-                           os<<'"'<<HTTP::JSON_UTF8_TO_ASCII(second.as_string())<<'"';  
+                           os<<'"'<<http::JSON_UTF8_TO_ASCII(second.as_string())<<'"';  
                       }else if(second.is_array()){
                             os<<second.as_array();  
 
@@ -2308,7 +2308,7 @@ std::ostream& operator<<(std::ostream& os, const HTTP::OBJ_ARRAY& a)
                       n++;
  
                       if(a.istag(first)){
-                          os <<'"'<<HTTP::JSON_UTF8_TO_ASCII(a.getkeyname(first))<<'"'<<':';
+                          os <<'"'<<http::JSON_UTF8_TO_ASCII(a.getkeyname(first))<<'"'<<':';
                           
                       }else{
    
@@ -2324,7 +2324,7 @@ std::ostream& operator<<(std::ostream& os, const HTTP::OBJ_ARRAY& a)
                             }
                             
                       }else if(second.is_string()){
-                           os<<'"'<<HTTP::JSON_UTF8_TO_ASCII(second.as_string())<<'"';  
+                           os<<'"'<<http::JSON_UTF8_TO_ASCII(second.as_string())<<'"';  
                       }else if(second.is_array()){
                             os<<second.as_array();  
 

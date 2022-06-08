@@ -33,7 +33,7 @@
 
 #include "Clientpeer.h"
 // #include "common_functions.h"
-namespace HTTP { 
+namespace http { 
         namespace fs = std::filesystem;
           void clientpeer::cookietoheader(){
               std::string temph;
@@ -57,7 +57,7 @@ namespace HTTP {
 
                     key.clear();
                     if(timeexp>0){
-                        key=HTTP::getGmtTime((unsigned long long)timeexp);
+                        key=http::getGmtTime((unsigned long long)timeexp);
                         temph.append("; Expires=");
                         temph.append(key);
                     }
@@ -294,7 +294,7 @@ namespace HTTP {
 
         }
    } 
-   clientpeer& clientpeer::operator<<(HTTP::OBJ_VALUE &a){
+   clientpeer& clientpeer::operator<<(http::OBJ_VALUE &a){
                     _output.append(a.to_string());
                     return *this;
                 }
@@ -758,9 +758,9 @@ namespace HTTP {
                      etag.clear();
                      modifytime=fileinfo.st_mtime;
                      filesize=fileinfo.st_size;
-                     etag.append(HTTP::to_hexstring(filesize));  
+                     etag.append(http::to_hexstring(filesize));  
                                     etag.append("-");
-                                    etag.append(HTTP::to_hexstring(modifytime)); 
+                                    etag.append(http::to_hexstring(modifytime)); 
                     return etag;
                 }
                 std::string clientpeer::writetime_tostring(fs::file_time_type const& ftime){
@@ -877,7 +877,7 @@ namespace HTTP {
                                 pathtype=1;
                                 // use cahce html ,modulepath same urlpath
                                 // sample: /module/method/202204/22333.html
-                                if(isusehtmlcache&&header->pathinfo.size()>2&&chachefiletime>10&&chachefiletime<(HTTP::timeid()-(unsigned long)fileinfo.st_mtime)){
+                                if(isusehtmlcache&&header->pathinfo.size()>2&&chachefiletime>10&&chachefiletime<(http::timeid()-(unsigned long)fileinfo.st_mtime)){
                                     pathtype=3;
                                 }                                    
                             }   
@@ -1168,15 +1168,15 @@ namespace HTTP {
                                    unsigned long long filemodifytime=fileinfo.st_mtime+header->urlpath.size();
                                    
                                     etag.clear(); 
-                                    etag.append(HTTP::to_hexstring(filebytesize));  
+                                    etag.append(http::to_hexstring(filebytesize));  
                                     etag.append("-");
-                                    etag.append(HTTP::to_hexstring(filemodifytime)); 
+                                    etag.append(http::to_hexstring(filemodifytime)); 
                                     filemodifytime=fileinfo.st_mtime; 
                                     bool iscompress=false;
                                     bool iscompok=false;
                                     if(header->state.rangebytes==false){
                                             if(header->state.ifmodifiedsince>0&&header->state.ifmodifiedsince==filemodifytime){
-                                                        senddatastring="HTTP/1.1 304 Not Modified\r\nDate:"+HTTP::getGmtTime()+"\r\n";
+                                                        senddatastring="HTTP/1.1 304 Not Modified\r\nDate:"+http::getGmtTime()+"\r\n";
                                                         if(header->state.keeplive){
                                                                 senddatastring.append("Connection: keep-alive\r\n");
                                                                 keeplive=true;
@@ -1184,7 +1184,7 @@ namespace HTTP {
                                                                 senddatastring.append("Connection: close\r\n");
                                                                 keeplive=false;
                                                             }
-                                                        senddatastring.append("Keep-Alive: timeout=5, max="+std::to_string(keeplivemax)+"\r\nLast-Modified: "+HTTP::getGmtTime((unsigned long long)fileinfo.st_mtime)+"\r\nETag: \""+etag+"\"\r\n\r\n"); 
+                                                        senddatastring.append("Keep-Alive: timeout=5, max="+std::to_string(keeplivemax)+"\r\nLast-Modified: "+http::getGmtTime((unsigned long long)fileinfo.st_mtime)+"\r\nETag: \""+etag+"\"\r\n\r\n"); 
                                                          
                                                         if(isssl){
                                                             asio::write(https_socket.front(), asio::buffer(senddatastring));
@@ -1194,7 +1194,7 @@ namespace HTTP {
                                                         return;
 
                                             }else if(header->etag.size()>0&&etag==header->etag){
-                                                        senddatastring="HTTP/1.1 304 Not Modified\r\nDate:"+HTTP::getGmtTime()+"\r\n";
+                                                        senddatastring="HTTP/1.1 304 Not Modified\r\nDate:"+http::getGmtTime()+"\r\n";
                                                         
                                                         if(header->state.keeplive){
                                                                 senddatastring.append("Connection: keep-alive\r\n");
@@ -1203,7 +1203,7 @@ namespace HTTP {
                                                                 senddatastring.append("Connection: close\r\n");
                                                                 keeplive=false;
                                                             }
-                                                        senddatastring.append("Keep-Alive: timeout=5, max="+std::to_string(keeplivemax)+"\r\nLast-Modified: "+HTTP::getGmtTime((unsigned long long)fileinfo.st_mtime)+"\r\nETag: \""+etag+"\"\r\n\r\n");  
+                                                        senddatastring.append("Keep-Alive: timeout=5, max="+std::to_string(keeplivemax)+"\r\nLast-Modified: "+http::getGmtTime((unsigned long long)fileinfo.st_mtime)+"\r\nETag: \""+etag+"\"\r\n\r\n");  
                                                          
                                                         if(isssl){
                                                             asio::write(https_socket.front(), asio::buffer(senddatastring));
@@ -1264,7 +1264,7 @@ namespace HTTP {
                                                                     std::string out_compress;
                                                                     if(compress(senddatastring.data(),senddatastring.size(),out_compress,Z_DEFAULT_COMPRESSION) == Z_OK){
 
-                                                                            senddatastring="HTTP/1.1 200 OK\r\nContent-Type: "+mimetype+"\r\nDate: "+HTTP::getGmtTime()+"\r\nLast-Modified: "+HTTP::getGmtTime((unsigned long long)fileinfo.st_mtime)+"\r\nETag: \""+etag+"\"\r\n";//
+                                                                            senddatastring="HTTP/1.1 200 OK\r\nContent-Type: "+mimetype+"\r\nDate: "+http::getGmtTime()+"\r\nLast-Modified: "+http::getGmtTime((unsigned long long)fileinfo.st_mtime)+"\r\nETag: \""+etag+"\"\r\n";//
                                                                             
                                                                             if(header->state.keeplive){
                                                                                 senddatastring.append("Connection: keep-alive\r\n");
@@ -1304,7 +1304,7 @@ namespace HTTP {
                                                                 auto const size = ftell(ff);
                                                                 fseek(ff, 0, SEEK_SET);
 
-                                                                senddatastring="HTTP/1.1 200 OK\r\nContent-Type: "+mimetype+"\r\nDate: "+HTTP::getGmtTime()+"\r\nLast-Modified: "+HTTP::getGmtTime((unsigned long long)fileinfo.st_mtime)+"\r\nETag: \""+etag+"\"\r\n";//
+                                                                senddatastring="HTTP/1.1 200 OK\r\nContent-Type: "+mimetype+"\r\nDate: "+http::getGmtTime()+"\r\nLast-Modified: "+http::getGmtTime((unsigned long long)fileinfo.st_mtime)+"\r\nETag: \""+etag+"\"\r\n";//
                                                                 
                                                                 if(header->state.keeplive){
                                                                     senddatastring.append("Connection: keep-alive\r\n");
@@ -1357,7 +1357,7 @@ namespace HTTP {
                                                                
                                                                 if(header->state.rangebegin>=mustnum||header->state.rangeend<0||header->state.rangeend>mustnum){
                                                                         statecode=416;
-                                                                        senddatastring="HTTP/1.1 416 Range Not Satisfiable\r\nDate:"+HTTP::getGmtTime()+"\r\nConnection: close\r\nCache-Control: max-age=0\r\nContent-length: 0\r\n\r\n";
+                                                                        senddatastring="HTTP/1.1 416 Range Not Satisfiable\r\nDate:"+http::getGmtTime()+"\r\nConnection: close\r\nCache-Control: max-age=0\r\nContent-length: 0\r\n\r\n";
                                                                         keeplive=false;
                                                                         if(isssl){
                                                                             asio::write(https_socket.front(), asio::buffer(senddatastring));
@@ -1378,7 +1378,7 @@ namespace HTTP {
                                                                 } 
                                                             
                                                                 if(statecode==206){
-                                                                    senddatastring="HTTP/1.1 206 Partial Content\r\nDate:"+HTTP::getGmtTime()+"\r\nContent-Type: "+mimetype+"\r\n";
+                                                                    senddatastring="HTTP/1.1 206 Partial Content\r\nDate:"+http::getGmtTime()+"\r\nContent-Type: "+mimetype+"\r\n";
                                                                     if(header->state.keeplive){
                                                                         senddatastring.append("Connection: keep-alive\r\n");
                                                                         keeplive=true;
@@ -1388,10 +1388,10 @@ namespace HTTP {
                                                                     }
                                                                     senddatastring.append("Accept-Ranges: bytes\r\n");
                                                                     senddatastring.append("Keep-Alive: timeout=5, max="+std::to_string(keeplivemax)+"\r\n");//+lm;
-                                                                    senddatastring.append("Last-Modified: "+HTTP::getGmtTime((unsigned long long)fileinfo.st_mtime)+"\r\nETag: \""+etag+"\"\r\nCache-Control: max-age=691200\r\nAccept-Ranges: bytes\r\nContent-Range: bytes "+std::to_string(readnum)+"-"+std::to_string(mustnum-1)+"/"+std::to_string(mustnum)+"\r\nContent-length: "+std::to_string(mustnum-readnum)+"\r\n\r\n");
+                                                                    senddatastring.append("Last-Modified: "+http::getGmtTime((unsigned long long)fileinfo.st_mtime)+"\r\nETag: \""+etag+"\"\r\nCache-Control: max-age=691200\r\nAccept-Ranges: bytes\r\nContent-Range: bytes "+std::to_string(readnum)+"-"+std::to_string(mustnum-1)+"/"+std::to_string(mustnum)+"\r\nContent-length: "+std::to_string(mustnum-readnum)+"\r\n\r\n");
                                                                     
                                                                 }else{
-                                                                    senddatastring="HTTP/1.1 200 OK\r\nContent-Type: "+mimetype+"\r\nDate: "+HTTP::getGmtTime()+"\r\nLast-Modified: "+HTTP::getGmtTime((unsigned long long)fileinfo.st_mtime)+"\r\nETag: \""+etag+"\"\r\n";//
+                                                                    senddatastring="HTTP/1.1 200 OK\r\nContent-Type: "+mimetype+"\r\nDate: "+http::getGmtTime()+"\r\nLast-Modified: "+http::getGmtTime((unsigned long long)fileinfo.st_mtime)+"\r\nETag: \""+etag+"\"\r\n";//
                                                                             
                                                                     if(header->state.keeplive){
                                                                         senddatastring.append("Connection: keep-alive\r\n");

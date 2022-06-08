@@ -51,7 +51,7 @@
 #include "pluginmodule.hpp"
 #include "threadpool.h"
 
-namespace HTTP {
+namespace http {
 
 
           void ThreadPool::printthreads(){
@@ -276,7 +276,7 @@ namespace HTTP {
                             // threadlist[thread_id].url=temp;  
 
 
-                            HTTP::_output.clear();      
+                            http::_output.clear();      
 
                             char data[2051];
                             std::string httpheader;
@@ -352,11 +352,11 @@ namespace HTTP {
                     // livethread[std::this_thread::get_id()]=time((time_t *)NULL);
 
                     if(method.size()==1){
-                        HTTP::controlmoduleclear("weibo","header");
-                            HTTP::controlmoduleclear("weibo","home");
-                            HTTP::controlmoduleclear("weibo","hello");
-                            HTTP::viewmoduleclear("about","jianjie");
-                            HTTP::viewmoduleclear("about","head");
+                        http::controlmoduleclear("weibo","header");
+                            http::controlmoduleclear("weibo","home");
+                            http::controlmoduleclear("weibo","hello");
+                            http::viewmoduleclear("about","jianjie");
+                            http::viewmoduleclear("about","head");
                             method="home";
                     }
 
@@ -365,13 +365,13 @@ namespace HTTP {
                         methodcontent.append(filename);
                         methodcontent.push_back('/');
                         methodcontent.append(method);
-            auto bb=HTTP::loadcontrol(methodcontent);
-        // methodcontent=HTTP::loadcontrol("chat/hello")(obj);
+            auto bb=http::loadcontrol(methodcontent);
+        // methodcontent=http::loadcontrol("chat/hello")(obj);
             methodcontent.clear();
             methodcontent=bb(_viewobj);
             bb.clear();
                 if(methodcontent.empty()){
-                //std::cout << HTTP::_output<< std::endl;  
+                //std::cout << http::_output<< std::endl;  
                 sofile.append(_output);
             }else{
             // std::cout << methodcontent<< std::endl;  

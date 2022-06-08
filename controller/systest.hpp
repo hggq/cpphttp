@@ -1,7 +1,7 @@
 #include "orm.h"
 #include <chrono>
 #include <thread>
-namespace HTTP {
+namespace http {
 
 std::string home(clientpeer& client){
     client<<"hello world! this use systest inline callback";

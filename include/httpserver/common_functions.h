@@ -18,7 +18,7 @@
 #include "http_header.hpp"
 #include "mysqlmodule.h"
 
-namespace HTTP {
+namespace http {
 
     //   std::mutex sessedit_mutex,sessselect_mutex;
     //   struct mysqllinkpool;
@@ -33,16 +33,16 @@ typedef boost::function<void(std::string)> echo_callback_t;
 typedef boost::function<void(std::string&)> echo_callbackand_t;
 typedef boost::function<mysqlx::RowResult(std::string&,size_t)> mysql_callbackand_t;
 typedef boost::function<mysqlx::SqlResult(std::string&,size_t)> mysql_callbacksql_t;
-typedef boost::function<std::string(HTTP::OBJ_VALUE&)> method_callback_t;
-typedef boost::function<boost::function<std::string(HTTP::OBJ_VALUE&)>(std::string)> modulemethod_callback_t;
+typedef boost::function<std::string(http::OBJ_VALUE&)> method_callback_t;
+typedef boost::function<boost::function<std::string(http::OBJ_VALUE&)>(std::string)> modulemethod_callback_t;
  
 std::string siteviewpath;
 std::string sitecontrolpath;
 std::map<std::size_t,std::vector<std::string>>  sharedmethodchache;
 std::map<std::size_t,method_callback_t>  sharedpathchache,controlpathchache;
 
-std::string httpempty(HTTP::OBJ_VALUE& a);
-std::string echoempty(HTTP::OBJ_VALUE& a);
+std::string httpempty(http::OBJ_VALUE& a);
+std::string echoempty(http::OBJ_VALUE& a);
 
 
 /////test/////
@@ -53,7 +53,7 @@ thread_local std::string _output;
 thread_local std::string _outputtemp;
 thread_local unsigned int _output_type;
 thread_local bool loadmoduleinitcall=false;
-thread_local HTTP::OBJ_VALUE vobj;
+thread_local http::OBJ_VALUE vobj;
 thread_local clientpeer *_threadclientpeer;
 thread_local std::map<std::string,std::map<std::string,std::string>> *_thishostsiteconfig;
 thread_local std::string _thishostcontrolsopath;
@@ -82,8 +82,8 @@ void send_data(std::string &name);
 void send_data(unsigned int statecode,std::string name);
 void send_data(unsigned int statecode,std::string &name);
 
-std::string httpempty(HTTP::OBJ_VALUE& a);
-std::string echoempty(HTTP::OBJ_VALUE& a);
+std::string httpempty(http::OBJ_VALUE& a);
+std::string echoempty(http::OBJ_VALUE& a);
 
 method_callback_t modulesendfile(std::string name);
 method_callback_t modulesenddata(std::string name);
@@ -99,12 +99,12 @@ void header(std::string name,std::string value);
 void setcookie(std::string name,std::string value,std::string path,unsigned int timeout);
 void setcookie(std::string name,std::string &value,std::string path,unsigned int timeout);
 
-HTTP::OBJ_VALUE getsession(std::string keyname);
+http::OBJ_VALUE getsession(std::string keyname);
 void setsession(std::string keyname,std::string value);
 void setsession(std::string keyname,std::string &value);
-void setsession(HTTP::OBJ_VALUE &value);
-std::string renderjsonfetchtosend(HTTP::OBJ_VALUE& b);
-std::string renderjsonlocaltosend(HTTP::OBJ_VALUE& b);
+void setsession(http::OBJ_VALUE &value);
+std::string renderjsonfetchtosend(http::OBJ_VALUE& b);
+std::string renderjsonlocaltosend(http::OBJ_VALUE& b);
 method_callback_t sendjsoncall(std::string modulemethod);
  mysqlx::SqlResult domysqleditexecute(std::string &sql,size_t dbhash);
         mysqlx::RowResult domysqlexecute(std::string &sql,size_t dbhash);
@@ -117,26 +117,26 @@ method_callback_t controlmodulecreate(std::string module,std::string name,size_t
 method_callback_t loadcontrol(std::string modulemethod);
 method_callback_t loadview(std::string modulemethod);
 method_callback_t loadviewnotcall(std::string modulemethod);
-std::string renderviewobjfetch(HTTP::OBJ_VALUE& b);
+std::string renderviewobjfetch(http::OBJ_VALUE& b);
 
 method_callback_t loadviewobjcall(std::string modulemethod);
-std::string renderviewfetch(HTTP::OBJ_VALUE& a);
+std::string renderviewfetch(http::OBJ_VALUE& a);
 method_callback_t loadviewfetchnotcall(std::string modulemethod);
 void viewmoduleclear(std::string module,std::string method);
 void controlmoduleclear(std::string module,std::string method);
 
 std::string loadmodule(std::string modulemethod);
-std::string loadmodule(std::string modulemethod,HTTP::OBJ_VALUE &b);
+std::string loadmodule(std::string modulemethod,http::OBJ_VALUE &b);
 
 void viewshow(std::string modulemethod);
 std::string viewfetch(std::string modulemethod);
-void viewshow(std::string modulemethod,HTTP::OBJ_VALUE &b);
-std::string viewfetch(std::string modulemethod,HTTP::OBJ_VALUE &b);
+void viewshow(std::string modulemethod,http::OBJ_VALUE &b);
+std::string viewfetch(std::string modulemethod,http::OBJ_VALUE &b);
 
 
 void echo_json(std::string b);
 void echo_json();
-void echo_json(HTTP::OBJ_VALUE &obj);
+void echo_json(http::OBJ_VALUE &obj);
 
 
    unsigned int get_controlversion();
@@ -149,7 +149,7 @@ void echo(unsigned int b);
 void echo(long long b);
 void echo(unsigned long long b);
 void echo(std::string &&b);
-void echo(HTTP::OBJ_VALUE &b);
+void echo(http::OBJ_VALUE &b);
  
 
 

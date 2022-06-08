@@ -26,7 +26,7 @@ class mywebsockets : public websockets_api {
 //    unsigned int timeloop_num;
 //    unsigned char state;
     unsigned int outcount=0;    
-    mywebsockets(std::weak_ptr<HTTP::clientpeer> p) : websockets_api(4,0,p){}
+    mywebsockets(std::weak_ptr<http::clientpeer> p) : websockets_api(4,0,p){}
     ~mywebsockets() {
         std::cout<<"~mywebsockets"<<std::endl;
     }
@@ -38,7 +38,7 @@ public:
         std::cout<<"onclose"<<std::endl;
     }
      void timeloop() {
-       std::shared_ptr<HTTP::clientpeer> peer=weakpeer.lock();
+       std::shared_ptr<http::clientpeer> peer=weakpeer.lock();
         if(peer){
                 std::cout<<"timeloop:"<<std::endl;
                 std::string aa="77788sdadfa";
@@ -63,7 +63,7 @@ public:
     void onmessage(std::string_view data) {
         std::cout<<"onmessage:"<<data<<std::endl;
     }
-    static std::shared_ptr<mywebsockets> create(std::weak_ptr<HTTP::clientpeer> p) {
+    static std::shared_ptr<mywebsockets> create(std::weak_ptr<http::clientpeer> p) {
         return std::make_shared<mywebsockets>(p);
     }
 };

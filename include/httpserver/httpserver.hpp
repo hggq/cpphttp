@@ -104,7 +104,7 @@ namespace this_coro = asio::this_coro;
 
 // std::map<std::string,SSL_CTX*> g_ctxMap;
 std::map<std::string,std::function<std::shared_ptr<websockets_api>(std::weak_ptr<clientpeer>)>> websocketmethodcallback;
-std::map<std::string,std::function<std::string(HTTP::clientpeer &)>>  methodcallback;
+std::map<std::string,std::function<std::string(http::clientpeer &)>>  methodcallback;
 std::string serverconfigpath;
 std::map<std::string,std::map<std::string,std::string>>  _serverconfig;
 
@@ -163,7 +163,7 @@ void loadmysqlconfig(){
              rmstag.push_back('/');
          }
          rmstag.append("mysqlorm.conf");
-         std::vector<HTTP::mysqlconnect_t> myconfig=HTTP::getmysqlconfig(rmstag);
+         std::vector<http::mysqlconnect_t> myconfig=http::getmysqlconfig(rmstag);
          std::map<std::string,std::vector<std::string>>  mysqldblinkgroupjion;
          rmstag.clear();
          //转为rmstag分组
@@ -182,11 +182,11 @@ void loadmysqlconfig(){
                 
                  dcon=hash_fn(iterl->first);
                 if(iterl->second.size()==1){
-                    HTTP::mysqllinkpool db(iterl->second[0],iterl->second[0]);
-                    HTTP::mysqldbpoolglobal.insert({dcon,std::move(db)}); 
+                    http::mysqllinkpool db(iterl->second[0],iterl->second[0]);
+                    http::mysqldbpoolglobal.insert({dcon,std::move(db)}); 
                 }else if(iterl->second.size()>1){
-                    HTTP::mysqllinkpool db(iterl->second[0],iterl->second[1]);
-                    HTTP::mysqldbpoolglobal.insert({dcon,std::move(db)}); 
+                    http::mysqllinkpool db(iterl->second[0],iterl->second[1]);
+                    http::mysqldbpoolglobal.insert({dcon,std::move(db)}); 
                 }
          }
                    
@@ -205,10 +205,10 @@ void loadserverglobalconfig(){
         configfile.push_back('/');
     }
     configfile.append("server.conf");
-    _serverconfig=HTTP::loadserversconfig(configfile);
+    _serverconfig=http::loadserversconfig(configfile);
  
-   HTTP::siteviewpath=_serverconfig["default"]["viewsopath"];
-   HTTP::sitecontrolpath=_serverconfig["default"]["controlsopath"];
+   http::siteviewpath=_serverconfig["default"]["viewsopath"];
+   http::sitecontrolpath=_serverconfig["default"]["controlsopath"];
    if(_serverconfig["default"]["index"].empty()){
         _serverconfig["default"]["index"]="index.html";
    }
@@ -414,7 +414,7 @@ bool ThreadPool::addclient(std::shared_ptr<clientpeer> peer) {
 void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
  try
  { 
-  HTTP::_threadclientpeer=peer.get();
+  http::_threadclientpeer=peer.get();
   
   std::thread::id thread_id=std::this_thread::get_id();
    clientapi& pnn =clientapi::get();
@@ -485,14 +485,11 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                 
                                 if(methodcallback.find(modulemethod)!=methodcallback.end()){
                                                 visttype=6;
-                                                // auto sitemodloadis=HTTP::loadcontrol(modulemethod);
-                                                //std::string sitecontent=methodcallback[modulemethod](HTTP::vobj);
                                                 std::string sitecontent=methodcallback[modulemethod](peer->getpeer());
                                                     
                                                     
                                                 if(sitecontent.empty()){
                                                     if(peer->vobj.as_int()==0){
-                                                      // peer->send(200,HTTP::_output);
                                                         peer->send(200);
                                                     }
                                                 }else{
@@ -516,7 +513,7 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                         moduleso=moduleso+peer->header->pathinfo[0]+".so";
                                         if (stat(moduleso.c_str(),&modso)==0){
                                                 visttype=3;
-                                                auto sitemodloadis=HTTP::loadcontrol(modulemethod);
+                                                auto sitemodloadis=http::loadcontrol(modulemethod);
                                                 //std::string sitecontent=sitemodloadis(HTTP::vobj);
                                                 std::string sitecontent=sitemodloadis(peer->getpeer());
                                                     
@@ -568,7 +565,7 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                         moduleso=moduleso+"default.so";
                                         if (stat(moduleso.c_str(),&modso)==0){
                                                 visttype=2;
-                                                auto sitemodloadis=HTTP::loadcontrol(modulemethod);
+                                                auto sitemodloadis=http::loadcontrol(modulemethod);
                                                 //std::string sitecontent=sitemodloadis(HTTP::vobj);
                                                 std::string sitecontent=sitemodloadis(peer->getpeer());    
                                                 if(sitecontent.empty()){
@@ -736,7 +733,7 @@ public:
     try {
  
     unsigned int readnum=0;    
-    peer->header=std::make_unique<HTTP::httpparse>();
+    peer->header=std::make_unique<http::httpparse>();
     peer->getremoteip();
     peer->getremoteport();
     peer->getlocalip();

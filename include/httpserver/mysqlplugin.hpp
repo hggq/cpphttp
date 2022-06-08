@@ -1,4 +1,4 @@
-#ifndef HTTP_MYSQLPLUGIN_HPP
+#ifndef http_MYSQLPLUGIN_HPP
 #define HTTP_MYSQLPLUGIN_HPP
 
 #include <boost/dll/import.hpp>
@@ -27,7 +27,7 @@
  
 #include <condition_variable>
 
-namespace HTTP {
+namespace http {
 
       std::mutex sessedit_mutex,sessselect_mutex;
 

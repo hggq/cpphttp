@@ -1,11 +1,11 @@
 #ifndef HTTP_HTTP_HEADER_HPP
 #define HTTP_HTTP_HEADER_HPP
 
-namespace HTTP {
+namespace http {
     class http_header{
         public:
-          HTTP::OBJ_VALUE header;
-          HTTP::OBJ_VALUE cookie;
+          http::OBJ_VALUE header;
+          http::OBJ_VALUE cookie;
     };
 
 }

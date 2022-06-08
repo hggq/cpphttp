@@ -4,7 +4,7 @@
 #include <string> 
 #include <map>
 
-namespace HTTP 
+namespace http 
 {
       
       std::map<std::string,std::map<std::string,std::string>> loadserversconfig(std::string filename)

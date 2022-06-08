@@ -8,7 +8,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include "datetime.h"
-namespace HTTP {
+namespace http {
 
 std::string getGmtTime(time_t inputtime=0)
 {

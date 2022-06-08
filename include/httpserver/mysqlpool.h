@@ -24,7 +24,7 @@
  
 #include <condition_variable>
 
-namespace HTTP {
+namespace http {
      
     class mysqllinkpool{
           public:

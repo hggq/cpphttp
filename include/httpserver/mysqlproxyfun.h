@@ -24,7 +24,7 @@
  
 #include <condition_variable>
 
-namespace HTTP {
+namespace http {
 
 
 mysqlx::SqlResult domysqleditexecute(std::string &sql,size_t dbhash);

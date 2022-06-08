@@ -6,7 +6,7 @@
 #include <map>
 #include <string>
 
-namespace HTTP{
+namespace http{
    // thread_local clientpeer* _threadclientpeer;
     void send_data(std::string name){
    

@@ -15,14 +15,14 @@
 #include "request.h"
 #include <mysqlx/xdevapi.h>
 #include "Clientpeer.h"
- namespace HTTP { 
+ namespace http { 
 // class clientpeer;
 // }
 class BOOST_SYMBOL_VISIBLE commonapi {
 public:
      commonapi(){}
 
-    HTTP::OBJ_VALUE vobj;
+    http::OBJ_VALUE vobj;
     static commonapi* instance()
     {
         if (singleton== NULL)

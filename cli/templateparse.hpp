@@ -27,7 +27,7 @@
 #include <strings.h>
 #include <cstring>
 
-namespace HTTP 
+namespace http 
 {
     namespace fs = std::filesystem;
 class viewtemplate{
@@ -368,9 +368,9 @@ class viewtemplate{
                 headtxt.append(" -shared -fPIC -std=c++20 -I../../include ../../src/request.cpp   -lssl -lcrypto -ldl -I/usr/local/opt/openssl/include -L/usr/local/opt/openssl/lib -lboost_filesystem\n");
                 fwrite(&headtxt[0],1,headtxt.size(),f); 
                 headtxt=R"(
-  namespace HTTP {
+  namespace http {
        
-        std::string view(HTTP::OBJ_VALUE &obj){
+        std::string view(http::OBJ_VALUE &obj){
             std::ostringstream echo;
 
         )";
@@ -378,8 +378,8 @@ class viewtemplate{
             return echo.str();
         }
 
-            BOOST_DLL_ALIAS(HTTP::view, view)
-            BOOST_DLL_ALIAS(HTTP::clientapi::setclientapi, _setclientapi)
+            BOOST_DLL_ALIAS(http::view, view)
+            BOOST_DLL_ALIAS(http::clientapi::setclientapi, _setclientapi)
         }
     )";
                     fwrite(&headtxt[0],1,headtxt.size(),f); 

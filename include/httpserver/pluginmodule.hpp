@@ -19,7 +19,7 @@
 #include "mysqlproxyfun.h"
 #include "httpsocommonapi.h" 
 
-namespace HTTP {
+namespace http {
  
 typedef boost::function<void()> callback_t;
 typedef boost::function<void(std::string)> echo_callback_t;
@@ -27,10 +27,10 @@ typedef boost::function<void(std::string&)> echo_callbackand_t;
 typedef boost::function<mysqlx::RowResult(std::string&,size_t)> mysql_callbackand_t;
 typedef boost::function<mysqlx::SqlResult(std::string&,size_t)> mysql_callbacksql_t;
 typedef boost::function<bool(std::list<std::string>&,size_t)> mysql_callbacksql_rollback;
-typedef boost::function<std::string(HTTP::OBJ_VALUE&)> method_callback_t;
-typedef boost::function<std::string(HTTP::clientpeer&)> www_method_call;
-typedef boost::function<boost::function<std::string(HTTP::OBJ_VALUE&)>(std::string)> modulemethod_callback_t;
-typedef boost::function<boost::function<std::string(HTTP::clientpeer&)>(std::string)> module_method_call;
+typedef boost::function<std::string(http::OBJ_VALUE&)> method_callback_t;
+typedef boost::function<std::string(http::clientpeer&)> www_method_call;
+typedef boost::function<boost::function<std::string(http::OBJ_VALUE&)>(std::string)> modulemethod_callback_t;
+typedef boost::function<boost::function<std::string(http::clientpeer&)>(std::string)> module_method_call;
 
 std::string siteviewpath="module/view/";
 std::string sitecontrolpath="module/controller/";
@@ -38,16 +38,16 @@ std::map<std::size_t,std::vector<std::string>>  sharedmethodchache;
 std::map<std::size_t,method_callback_t>  sharedpathchache;//,controlpathchache;
 std::map<std::size_t,www_method_call>  controlpathchache;
 std::mutex loadcontrolmtx,loadviewmtx,moudulecachemethod;
-std::string httpviewempty(HTTP::OBJ_VALUE& a){
+std::string httpviewempty(http::OBJ_VALUE& a){
     return "<p>--view not found--</p>";
 }
-std::string echoviewempty(HTTP::OBJ_VALUE& a){
+std::string echoviewempty(http::OBJ_VALUE& a){
     return "";
 }
-std::string httpempty(HTTP::clientpeer& a){
+std::string httpempty(http::clientpeer& a){
     return "<p>--.so image not found--</p>";
 }
-std::string echoempty(HTTP::clientpeer& a){
+std::string echoempty(http::clientpeer& a){
     return "";
 }
 
@@ -71,9 +71,9 @@ thread_local std::string _output;
 thread_local std::string _outputtemp;
 thread_local unsigned int _output_type;
 thread_local bool loadmoduleinitcall=false;
-thread_local HTTP::OBJ_VALUE vobj;
+thread_local http::OBJ_VALUE vobj;
 //thread_local wwwserver *_wwwhttpserver;
-thread_local HTTP::clientpeer* _threadclientpeer;
+thread_local http::clientpeer* _threadclientpeer;
 thread_local std::map<std::string,std::map<std::string,std::string>> *_thishostsiteconfig;
 thread_local std::string _thishostcontrolsopath;
 thread_local std::string _thishostviewsopath;
@@ -119,7 +119,7 @@ void echo_flush(std::string name){
     _threadclientpeer->_output.append(std::move(name));
     //now send data
 }
-HTTP::clientpeer* getpeer(){
+http::clientpeer* getpeer(){
     return _threadclientpeer;
 }
 void echoassignand(std::string& name){
@@ -153,7 +153,7 @@ void setcookie(std::string name,std::string &value,std::string path="/",unsigned
     //_header.emplace_back(name);
 }
 
-HTTP::OBJ_VALUE getsession(std::string keyname){
+http::OBJ_VALUE getsession(std::string keyname){
     _threadclientpeer->session[keyname];
     return _threadclientpeer->session[keyname];
 }
@@ -164,7 +164,7 @@ void setsession(std::string keyname,std::string &value){
      _threadclientpeer->session[keyname]=value;
     
 }
-void setsession(HTTP::OBJ_VALUE &value){
+void setsession(http::OBJ_VALUE &value){
     if(value.is_array()){
          for(auto iter:value.as_array()){
          _threadclientpeer->session[value.getkeyname(iter.first)]=iter.second;
@@ -174,12 +174,12 @@ void setsession(HTTP::OBJ_VALUE &value){
     }
     
 }
-std::string renderjsonfetchtosend(HTTP::OBJ_VALUE & b){
+std::string renderjsonfetchtosend(http::OBJ_VALUE & b){
         
         _threadclientpeer->_output.append(b.tojson());
         return "";
 }
-std::string renderjsonlocaltosend(HTTP::OBJ_VALUE & b){
+std::string renderjsonlocaltosend(http::OBJ_VALUE & b){
         
         _threadclientpeer->_output.append(_threadclientpeer->vobj.tojson());
         return "";
@@ -268,13 +268,13 @@ method_callback_t viewmodulecreate(std::string module,std::string name){
                              boost::dll::shared_library lib(shared_library_path); 
                              if(lib.has("_setclientapi"))  
                             {
-                              boost::function<HTTP::clientapi*(HTTP::clientapi*)> setclientapicall= boost::dll::import_alias<HTTP::clientapi*(HTTP::clientapi*)>(shared_library_path, "_setclientapi"); 
-                                    HTTP::clientapi* pn =HTTP::clientapi::instance();
+                              boost::function<http::clientapi*(http::clientapi*)> setclientapicall= boost::dll::import_alias<http::clientapi*(http::clientapi*)>(shared_library_path, "_setclientapi"); 
+                                    http::clientapi* pn =http::clientapi::instance();
                                     setclientapicall(pn);
                             }
                             if(lib.has(name))  
                             {
-                                return std::move(boost::dll::import_alias<std::string(HTTP::OBJ_VALUE &)>(shared_library_path, name ));
+                                return std::move(boost::dll::import_alias<std::string(http::OBJ_VALUE &)>(shared_library_path, name ));
                             }
                     }
             }catch (std::exception& e)  
@@ -310,17 +310,17 @@ www_method_call controlmodulecreate(std::string module,std::string name,size_t t
                             boost::dll::shared_library lib(shared_library_path); 
                             if(lib.has("_setclientapi"))  
                             {
-                              boost::function<HTTP::clientapi*(HTTP::clientapi*)> setclientapicall= boost::dll::import_alias<HTTP::clientapi*(HTTP::clientapi*)>(shared_library_path, "_setclientapi"); 
-                                    HTTP::clientapi* pn =HTTP::clientapi::instance();
+                              boost::function<http::clientapi*(http::clientapi*)> setclientapicall= boost::dll::import_alias<http::clientapi*(http::clientapi*)>(shared_library_path, "_setclientapi"); 
+                                    http::clientapi* pn =http::clientapi::instance();
                                     setclientapicall(pn);
                             }
 
                              if(lib.has(name))  
                             {
-                               controlpathchache[tt]=std::move(boost::dll::import_alias<std::string(HTTP::clientpeer &)>(shared_library_path, name ));
+                               controlpathchache[tt]=std::move(boost::dll::import_alias<std::string(http::clientpeer &)>(shared_library_path, name ));
                                return controlpathchache[tt]; 
                             }else if(lib.has("_init404")){
-                                controlpathchache[tt]=std::move(boost::dll::import_alias<std::string(HTTP::clientpeer &)>(shared_library_path, "_init404" ));
+                                controlpathchache[tt]=std::move(boost::dll::import_alias<std::string(http::clientpeer &)>(shared_library_path, "_init404" ));
                                return controlpathchache[tt]; 
                             }
                                    
@@ -506,7 +506,7 @@ method_callback_t loadviewnotcall(std::string modulemethod){
         return httpviewempty;
 
 }
-std::string renderviewobjfetch(HTTP::OBJ_VALUE& b){
+std::string renderviewobjfetch(http::OBJ_VALUE& b){
         if(!_outputtemp.empty()){
             if(_outputtemp.size()<30){
                 _threadclientpeer->_output.append(loadview(_outputtemp)(b));  
@@ -524,7 +524,7 @@ method_callback_t loadviewobjcall(std::string modulemethod){
 
 }
 
-std::string renderviewfetch(HTTP::OBJ_VALUE& a){
+std::string renderviewfetch(http::OBJ_VALUE& a){
         std::string temp(_outputtemp);
         _outputtemp.clear();
         return std::move(temp);
@@ -658,7 +658,7 @@ std::string loadmodule(std::string modulemethod){
     }  
    
 } 
-std::string loadmodule(std::string modulemethod,HTTP::clientpeer& b){
+std::string loadmodule(std::string modulemethod,http::clientpeer& b){
     try {
         return loadcontrol(modulemethod)(b);
     }catch (std::exception& e)  
@@ -691,7 +691,7 @@ std::string viewfetch(std::string modulemethod){
         return "not found:"+modulemethod; 
     }   
 } 
-void viewshow(std::string modulemethod,HTTP::OBJ_VALUE &b){
+void viewshow(std::string modulemethod,http::OBJ_VALUE &b){
     try {
        loadviewobjcall(modulemethod)(b);
     }catch (std::exception& e)  
@@ -701,7 +701,7 @@ void viewshow(std::string modulemethod,HTTP::OBJ_VALUE &b){
     }  
    
 } 
-std::string viewfetch(std::string modulemethod,HTTP::OBJ_VALUE &b){
+std::string viewfetch(std::string modulemethod,http::OBJ_VALUE &b){
  
   try {
       return loadview(modulemethod)(b);
@@ -720,7 +720,7 @@ void echo_json(std::string b){
 void echo_json(){
        sendjsoncall("application/json");
 }
-void echo_json(HTTP::OBJ_VALUE &b){
+void echo_json(http::OBJ_VALUE &b){
  
       sendjsoncall("")(b);
 }
@@ -766,7 +766,7 @@ void echo(unsigned long long b){
 void echo(std::string &&b){
       _threadclientpeer->_output.append(b);
 }
-void echo(HTTP::OBJ_VALUE &b){
+void echo(http::OBJ_VALUE &b){
      _threadclientpeer->_output.append(b.to_string());
 }
 std::string& getoutput(){

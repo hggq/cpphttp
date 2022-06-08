@@ -27,7 +27,7 @@
  
 #include <condition_variable>
 
-namespace HTTP {
+namespace http {
 
    //   std::mutex sessedit_mutex,sessselect_mutex;
 

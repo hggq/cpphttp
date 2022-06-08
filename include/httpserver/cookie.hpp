@@ -7,7 +7,7 @@
 #include "datetime.h"
 #include "urlcode.h"
 
-namespace HTTP {
+namespace http {
 class Cookie{
 
       public:
@@ -109,21 +109,21 @@ class Cookie{
             std::string tempc;
          if(_val.find(key)!=_val.end()){
                 tempc.append("Set-Cookie: ");
-                tempc.append(HTTP::url_encode(key.data(),key.size()));
+                tempc.append(http::url_encode(key.data(),key.size()));
                 tempc.push_back('=');
-                tempc.append(HTTP::url_encode( _val[key].data(), _val[key].size()));
+                tempc.append(http::url_encode( _val[key].data(), _val[key].size()));
 
                 unsigned long long timeexp=0;
                    if(_expires.find(key)!=_expires.end()){
                        timeexp=_expires[key];
 
                              if(timeexp>0&&timeexp<63072000){
-                                    timeexp=HTTP::timeid()+timeexp;
+                                    timeexp=http::timeid()+timeexp;
                                 }
                                 if(timeexp>0){
                                     
                                     tempc.append("; Expires=");
-                                    tempc.append(HTTP::getGmtTime(timeexp));
+                                    tempc.append(http::getGmtTime(timeexp));
                                 }
 
                     } 

@@ -35,7 +35,7 @@
 #include "httpparse.h"
 
 
-namespace HTTP { 
+namespace http { 
  namespace fs = std::filesystem; 
 class clientpeer {
 public:
@@ -63,7 +63,7 @@ public:
     std::string getlocalip();
     unsigned short getlocalport();
 
-       clientpeer& operator<<(HTTP::OBJ_VALUE &a);
+       clientpeer& operator<<(http::OBJ_VALUE &a);
              clientpeer& operator<<(std::string &&a);
                  clientpeer& operator<<(std::string &a);
                  clientpeer& operator<<(std::string_view a);
@@ -102,7 +102,7 @@ public:
   std::unique_ptr<WebSocketparse> ws;
   std::shared_ptr<websockets_api> websocket;
   //HTTP::httpparse *header;
-  std::unique_ptr<HTTP::httpparse> header;
+  std::unique_ptr<http::httpparse> header;
 
   std::map<std::string,std::map<std::string,std::string>> *globalconfig;
 
@@ -110,8 +110,8 @@ public:
   bool isusehtmlcache=false;
   unsigned long long chachefiletime=10;
   std::string _output;
-  HTTP::OBJ_VALUE vobj;
-  HTTP::OBJ_VALUE session;
+  http::OBJ_VALUE vobj;
+  http::OBJ_VALUE session;
   unsigned long long  sessionfile_time=0;
   Cookie cookie;
   std::list<std::future<int>> loopresults;

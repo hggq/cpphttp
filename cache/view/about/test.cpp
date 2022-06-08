@@ -19,9 +19,9 @@
 
 //g++ cache/view/about/test.cpp -o module/view/about/test.so -shared -fPIC -std=c++20 -I../../include ../../src/request.cpp   -lssl -lcrypto -ldl -I/usr/local/opt/openssl/include -L/usr/local/opt/openssl/lib -lboost_filesystem
 
-  namespace HTTP {
+  namespace http {
        
-        std::string view(HTTP::OBJ_VALUE &obj){
+        std::string view(http::OBJ_VALUE &obj){
             std::ostringstream echo;
 
         
@@ -30,7 +30,7 @@
             return echo.str();
         }
 
-            BOOST_DLL_ALIAS(HTTP::view, view)
-            BOOST_DLL_ALIAS(HTTP::clientapi::setclientapi, _setclientapi)
+            BOOST_DLL_ALIAS(http::view, view)
+            BOOST_DLL_ALIAS(http::clientapi::setclientapi, _setclientapi)
         }
     

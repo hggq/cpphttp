@@ -2,7 +2,7 @@
 #define ORM_SMS_NEWSBASEMATA_H
 /*
 *This file is auto create from cli
-*本文件为自动生成 Tue, 17 May 2022 10:05:26 GMT
+*本文件为自动生成 Wed, 08 Jun 2022 04:31:53 GMT
 ***/
 #include<iostream>
 #include <cstdio>
@@ -199,31 +199,31 @@ break;
         		case 0: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.newsid=(unsigned  int )_row[i];
+				 metatemp.newsid=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 1: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.classid=(unsigned  int )_row[i];
+				 metatemp.classid=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 2: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.topicid=(unsigned  int )_row[i];
+				 metatemp.topicid=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 3: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.channelid=(unsigned  int )_row[i];
+				 metatemp.channelid=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 4: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.clicknum=( int )_row[i];
+				 metatemp.clicknum=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 5: 
@@ -339,19 +339,19 @@ break;
 		case 19: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.sort=( int )_row[i];
+				 metatemp.sort=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 20: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.userid=( int )_row[i];
+				 metatemp.userid=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 21: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.language=( int )_row[i];
+				 metatemp.language=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 22: 
@@ -436,31 +436,31 @@ break;
         		case 0: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.newsid=(unsigned  int )_row[i];
+				 metatemp.newsid=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 1: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.classid=(unsigned  int )_row[i];
+				 metatemp.classid=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 2: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.topicid=(unsigned  int )_row[i];
+				 metatemp.topicid=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 3: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.channelid=(unsigned  int )_row[i];
+				 metatemp.channelid=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 4: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.clicknum=( int )_row[i];
+				 metatemp.clicknum=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 5: 
@@ -576,19 +576,19 @@ break;
 		case 19: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.sort=( int )_row[i];
+				 metatemp.sort=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 20: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.userid=( int )_row[i];
+				 metatemp.userid=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 21: 
  
 	 if(_row[i].getType()==mysqlx::Value::Type::INT64||_row[i].getType()==mysqlx::Value::Type::UINT64){ 
-				 metatemp.language=( int )_row[i];
+				 metatemp.language=_row[i].get<unsigned>();
 		 } 
 			 break;
 		case 22: 

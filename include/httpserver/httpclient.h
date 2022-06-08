@@ -11,7 +11,7 @@
 #include <sstream>
 #include <asio.hpp>
 #include <cookie.hpp>
-namespace HTTP 
+namespace http 
 {
     struct upload_file{
                  std::string name;
@@ -27,13 +27,13 @@ namespace HTTP
     public:
         client(){};
         client(std::string_view url):_url(url){};
-        client& get(std::string_view url,HTTP::OBJ_VALUE parmter);
+        client& get(std::string_view url,http::OBJ_VALUE parmter);
         client& get(std::string_view url);
-        client& post(std::string_view url,HTTP::OBJ_VALUE parmter); 
+        client& post(std::string_view url,http::OBJ_VALUE parmter); 
         client& post(std::string_view url); 
-        client& getjson(std::string_view url,HTTP::OBJ_VALUE parmter);
+        client& getjson(std::string_view url,http::OBJ_VALUE parmter);
         client& getjson(std::string_view url);
-        client& postjson(std::string_view url,HTTP::OBJ_VALUE parmter); 
+        client& postjson(std::string_view url,http::OBJ_VALUE parmter); 
         client& postjson(std::string_view url); 
 
         client& setcookie(std::string,std::string); 
@@ -44,7 +44,7 @@ namespace HTTP
         client& posttype(std::string);
         client& datatype(std::string);
         client& send();
-        client& send(HTTP::OBJ_VALUE parmter);
+        client& send(http::OBJ_VALUE parmter);
         client& senddatato();
         client& sendssldatato();
         client& save(std::string);
@@ -59,10 +59,10 @@ namespace HTTP
         void finishprocess();
         void process(const char * buffer,unsigned int buffersize);
         void close_file(std::FILE* fp){std::fclose(fp);}
-        HTTP::OBJ_VALUE header;
-        HTTP::OBJ_VALUE cookie;
-        HTTP::OBJ_VALUE parameter;
-        HTTP::OBJ_VALUE data;
+        http::OBJ_VALUE header;
+        http::OBJ_VALUE cookie;
+        http::OBJ_VALUE parameter;
+        http::OBJ_VALUE data;
         void buildheader();
         void buildcontent();
         void timeout(unsigned int t){ exptime=t; };
@@ -97,7 +97,7 @@ namespace HTTP
             std::map<std::string,std::string> header;
             Cookie cookie;
             upload_file page;
-            HTTP::OBJ_VALUE json;
+            http::OBJ_VALUE json;
         } state;
 
        private:    

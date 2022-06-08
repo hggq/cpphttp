@@ -7,9 +7,9 @@
 --compiler--end--
 */
 
-namespace HTTP {
+namespace http {
  
-std::string menubar(HTTP::clientpeer & client){
+std::string menubar(http::clientpeer & client){
      client.vobj["home"]="/";
      client.vobj["news"]="/news";
      client.vobj["about"]="/about";
@@ -22,7 +22,7 @@ std::string menubar(HTTP::clientpeer & client){
      return "";
 } 
 
-std::string home(HTTP::clientpeer & client){
+std::string home(http::clientpeer & client){
     client<<"hello world!  weibo so file";
     client<<"<p><a href=\"/weibo/header\">header</a></p>";
     client<<"<p><a href=\"/weibo/hello\">content</a></p>";
@@ -56,7 +56,7 @@ std::string home(HTTP::clientpeer & client){
 
     }
     client.vobj["name"]="view name huang";
-   //  HTTP::OBJ_VALUE dateobj= mbc.where("mid>",0).limit(5).fetchOBJ();
+   //  http::OBJ_VALUE dateobj= mbc.where("mid>",0).limit(5).fetchOBJ();
    //     dateobj.set_array();
    //     for(auto [first,second]:dateobj.as_array()){
    //       echo("<p>json:"+dateobj[first]["mid"].to_string()+"="+dateobj[first]["addtime"].as_string()+" "+dateobj[first]["dsssggg"].as_string()+"</p>");
@@ -95,7 +95,7 @@ std::string home(HTTP::clientpeer & client){
     // if(obj.isset("id")){
     //    // myu.select("id,name").where("id",obj["id"]).group("userid").order("level desc").limit(5).fetch();
 
-    //    HTTP::OBJ_VALUE testobj= myu.select("id,name").where("id<",obj["id"]).limit(5).fetchOBJ();
+    //    http::OBJ_VALUE testobj= myu.select("id,name").where("id<",obj["id"]).limit(5).fetchOBJ();
     //    testobj.set_array();
     //    for(auto [first,second]:testobj.as_array()){
     //      echo("<p>json:"+std::to_string(testobj[first]["id"].as_int())+"="+testobj[first]["name"].as_string()+"</p>");
@@ -181,7 +181,7 @@ std::string hello(clientpeer & client){
  
    return "";
 }
-std::string _init404(HTTP::clientpeer &peer){
+std::string _init404(http::clientpeer &peer){
    peer<<"<p><a href=\"/weibo/home\">home</p>";
    peer<<peer.vobj["get"]["aa"];
    return "";
@@ -192,8 +192,8 @@ _SHOW(home)
 _SHOW(hello)
 _SHOW(_init404)
 
-// BOOST_DLL_ALIAS(HTTP::hello, hello)
-// BOOST_DLL_ALIAS(HTTP::menubar, header)
+// BOOST_DLL_ALIAS(http::hello, hello)
+// BOOST_DLL_ALIAS(http::menubar, header)
 
 
 }

@@ -1,7 +1,7 @@
 #ifndef HTTP_MODULEMAR_HPP
 #define HTTP_MODULEMAR_HPP
 
-namespace HTTP {
+namespace http {
 
 class modulemar{
     public:

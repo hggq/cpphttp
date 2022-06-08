@@ -21,7 +21,7 @@
 #include <condition_variable>
 #include "mysqlcommit.hpp"
 #include "mysqlproxyfun.h"
-using namespace HTTP;
+using namespace http;
 namespace orm {
         //通用操作 类 mysql 方法 在这里接上getSession(); 这里可以操作 data sql count page 
 
@@ -165,7 +165,7 @@ class mysqlclientDB: public base {
          return *mod;
 
       }
-       model& where(std::string wq,std::string bi,HTTP::OBJ_VALUE& obj){
+       model& where(std::string wq,std::string bi,http::OBJ_VALUE& obj){
          if(wheresql.empty()||ishascontent)
          {
                 
@@ -194,7 +194,7 @@ class mysqlclientDB: public base {
          return *mod;
 
     }
-        model& where(std::string wq,HTTP::OBJ_VALUE& obj){
+        model& where(std::string wq,http::OBJ_VALUE& obj){
          if(wheresql.empty()||ishascontent)
          {
                 
@@ -1114,7 +1114,7 @@ class mysqlclientDB: public base {
 
          return *mod;
     }
-    HTTP::OBJ_VALUE fetchOBJ()
+    http::OBJ_VALUE fetchOBJ()
     {
         if(selectsql.empty()){
             sqlstring="SELECT *  FROM ";
@@ -1145,7 +1145,7 @@ class mysqlclientDB: public base {
         res = domysqlexecute(sqlstring,dbhash);
         const mysqlx::Columns &columns = res.getColumns();
         base::_keypos.clear();
-        HTTP::OBJ_VALUE valuetemp;
+        http::OBJ_VALUE valuetemp;
         std::vector<std::string> colnametemp;
                  for (unsigned char index=0; index < res.getColumnCount(); index++)
                 {       
@@ -1159,7 +1159,7 @@ class mysqlclientDB: public base {
                std::string tempraw;     
                 while ((base::_row = res.fetchOne()))
                 {
-                     HTTP::OBJ_VALUE rowtemp;
+                     http::OBJ_VALUE rowtemp;
                     
                      for(unsigned char i=0;i<res.getColumnCount();i++){
                            switch(base::_row[i].getType()){

@@ -26,7 +26,7 @@
 #include <map>
 #include <strings.h>
 #include <cstring>
-namespace HTTP 
+namespace http 
 {
  namespace fs = std::filesystem;
 class controllerparse{

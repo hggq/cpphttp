@@ -13,7 +13,7 @@
 #include <thread>
 #include <chrono>
 #include "urlcode.h"
-namespace HTTP
+namespace http
 { 
 //第一次匹配pos位置
 int find_indexOf(const  char * source,int slen,const char * str,int len){

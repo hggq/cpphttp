@@ -29,7 +29,7 @@
 #include "httpsocommonapi.h" 
 
 
-namespace HTTP {
+namespace http {
    unsigned int get_controlversion(){
        return 0x01000000;
    } 
@@ -97,8 +97,8 @@ void setcookie(std::string name,std::string &value,std::string path="/",unsigned
     name.append(": ");  
     name.append(value);    
 }
-HTTP::OBJ_VALUE getsession(std::string keyname){
-    HTTP::OBJ_VALUE b;
+http::OBJ_VALUE getsession(std::string keyname){
+    http::OBJ_VALUE b;
     return b;
 }
 void setsession(std::string keyname,std::string value){
@@ -108,7 +108,7 @@ void setsession(std::string keyname,std::string &value){
     
     
 }
-void setsession(HTTP::OBJ_VALUE &value){
+void setsession(http::OBJ_VALUE &value){
     
 }
 void echo_flush(){
@@ -123,7 +123,7 @@ void echo_json(std::string b){
 void echo_json(){
        clientapi::get().api_sendjsoncall("application/json");
 }
-void echo_json(HTTP::OBJ_VALUE &obj){
+void echo_json(http::OBJ_VALUE &obj){
       clientapi::get().api_sendjsoncall("")(obj);
 }
 
@@ -160,7 +160,7 @@ void echo(unsigned long long b){
 void echo(std::string &&b){
     clientapi::get().api_echoassign(std::move(b));
 }
-void echo(HTTP::OBJ_VALUE &b){
+void echo(http::OBJ_VALUE &b){
      clientapi::get().api_echoassign(b.to_string());       
 }
 void viewshow(std::string modulemethod){
@@ -170,20 +170,20 @@ std::string viewfetch(std::string modulemethod){
     
    return clientapi::get().api_loadviewfetchnotcall(modulemethod)(clientapi::get().getpeer()->vobj); 
 } 
-void viewshow(std::string modulemethod,HTTP::OBJ_VALUE &b){
+void viewshow(std::string modulemethod,http::OBJ_VALUE &b){
     clientapi::get().api_loadviewobjcall(modulemethod)(b);
 } 
-std::string viewfetch(std::string modulemethod,HTTP::OBJ_VALUE &b){
+std::string viewfetch(std::string modulemethod,http::OBJ_VALUE &b){
  return  clientapi::get().api_loadview(modulemethod)(b);
 } 
 std::string loadmodule(std::string modulemethod){
   return  clientapi::get().api_loadcontrol(modulemethod)(clientapi::get().getpeer()->getpeer());
 } 
-std::string loadmodule(std::string modulemethod,HTTP::clientpeer &b){
+std::string loadmodule(std::string modulemethod,http::clientpeer &b){
    return clientapi::get().api_loadcontrol(modulemethod)(b);
 } 
-BOOST_DLL_ALIAS(HTTP::clientapi::setclientapi, _setclientapi)
-#define _SHOW(A) BOOST_DLL_ALIAS(HTTP::A,A) 
-#define _SHOWS(A,B) BOOST_DLL_ALIAS(HTTP::A,B) 
+BOOST_DLL_ALIAS(http::clientapi::setclientapi, _setclientapi)
+#define _SHOW(A) BOOST_DLL_ALIAS(http::A,A) 
+#define _SHOWS(A,B) BOOST_DLL_ALIAS(http::A,B) 
 }
 #endif

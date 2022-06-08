@@ -46,7 +46,7 @@
  #include "request.h"
 // #include "WebSocket.h"
 #include "httpparse.h"
-namespace HTTP { 
+namespace http { 
 
             httpparse::httpparse(){
                     error=0;     
@@ -147,15 +147,15 @@ namespace HTTP {
                                                       //双数组
                                                       if(key1name.empty()){
                                                           if(key2name.empty()){
-                                                                 HTTP::OBJ_ARRAY objtemp;
+                                                                 http::OBJ_ARRAY objtemp;
                                                                  objtemp.push(header_input); 
-                                                                 HTTP::OBJ_ARRAY objtemp1;
+                                                                 http::OBJ_ARRAY objtemp1;
                                                                  objtemp1.push(std::move(objtemp)); 
                                                                  get[objname].push(std::move(objtemp1));   
                                                           }else{
-                                                                 HTTP::OBJ_VALUE objtemp;
+                                                                 http::OBJ_VALUE objtemp;
                                                                  objtemp[key2name]=header_input;
-                                                                 HTTP::OBJ_ARRAY objtemp1;
+                                                                 http::OBJ_ARRAY objtemp1;
                                                                  objtemp1.push(std::move(objtemp)); 
                                                                  get[objname].push(std::move(objtemp1));   
                                                           }  
@@ -260,15 +260,15 @@ namespace HTTP {
                                                       //双数组
                                                       if(key1name.empty()){
                                                           if(key2name.empty()){
-                                                                 HTTP::OBJ_ARRAY objtemp;
+                                                                 http::OBJ_ARRAY objtemp;
                                                                  objtemp.push(header_input); 
-                                                                 HTTP::OBJ_ARRAY objtemp1;
+                                                                 http::OBJ_ARRAY objtemp1;
                                                                  objtemp1.push(std::move(objtemp)); 
                                                                  post[objname].push(std::move(objtemp1));   
                                                           }else{
-                                                                 HTTP::OBJ_VALUE objtemp;
+                                                                 http::OBJ_VALUE objtemp;
                                                                  objtemp[key2name]=header_input;
-                                                                 HTTP::OBJ_ARRAY objtemp1;
+                                                                 http::OBJ_ARRAY objtemp1;
                                                                  objtemp1.push(std::move(objtemp)); 
                                                                  post[objname].push(std::move(objtemp1));   
                                                           }  
@@ -454,7 +454,7 @@ namespace HTTP {
                   
  
                  if(headerstep==2||headerstep==6){
-                       urlpath=HTTP::url_decode(header_key.data(), header_key.length());
+                       urlpath=http::url_decode(header_key.data(), header_key.length());
                  }  
                  if(headerstep==6){
                      
@@ -481,12 +481,12 @@ namespace HTTP {
                     unsigned char partype=0;
                     for(j=0;j<qsize;j++){
                         if(querystring[j]==0x3D){
-                            header_temp=HTTP::url_decode(header_value.data(),header_value.length());
+                            header_temp=http::url_decode(header_value.data(),header_value.length());
                             header_value.clear(); 
                             partype=1;
                             continue;    
                         }else if(querystring[j]==0x26){
-                            header_input=HTTP::url_decode(header_value.data(),header_value.length());
+                            header_input=http::url_decode(header_value.data(),header_value.length());
                             procssparamter();
                             header_value.clear();  
                             partype=2;   
@@ -495,14 +495,14 @@ namespace HTTP {
                         header_value.push_back(querystring[j]);
                     }
                      if(partype==1){
-                        header_input=HTTP::url_decode(header_value.data(),header_value.length());
+                        header_input=http::url_decode(header_value.data(),header_value.length());
                         procssparamter();
                      }else if(partype==2){
-                        header_temp=HTTP::url_decode(header_value.data(),header_value.length());
+                        header_temp=http::url_decode(header_value.data(),header_value.length());
                         header_input.clear();
                         procssparamter();    
                      }else if(header_value.size()>0){
-                        header_temp=HTTP::url_decode(header_value.data(),header_value.length());
+                        header_temp=http::url_decode(header_value.data(),header_value.length());
                         header_input.clear();
                         procssparamter();  
                      }
@@ -1129,12 +1129,12 @@ namespace HTTP {
                         buffer_value.clear();
                         for(;i<linesize;i++){
                                 if(header_value[i]==0x3D){
-                                    buffer_key=HTTP::url_decode(buffer_value.data(), buffer_value.length());
+                                    buffer_key=http::url_decode(buffer_value.data(), buffer_value.length());
                                     buffer_value.clear();
                                     continue;
                                 }
                                 if(header_value[i]==0x3B){
-                                    buffer_value=HTTP::url_decode(buffer_value.data(), buffer_value.length());
+                                    buffer_value=http::url_decode(buffer_value.data(), buffer_value.length());
                                     cookie[buffer_key]=buffer_value;
                                     buffer_key.clear();
                                     buffer_value.clear();
@@ -1146,7 +1146,7 @@ namespace HTTP {
                             buffer_value.push_back(header_value[i]);
                         }
                         if(buffer_value.size()>0){
-                              buffer_value=HTTP::url_decode(buffer_value.data(), buffer_value.length());
+                              buffer_value=http::url_decode(buffer_value.data(), buffer_value.length());
                               cookie[buffer_key]=buffer_value;
                         }  
                        
@@ -1575,7 +1575,7 @@ namespace HTTP {
                                                           if(key2name.empty()){
                                                                  
 
-                                                                  HTTP::OBJ_VALUE objtemp;
+                                                                  http::OBJ_VALUE objtemp;
                                                                   objtemp.set_array();
                                                                   objtemp["filename"]=upfile.filename;
                                                                         objtemp["tempfile"]=upfile.tempfile;
@@ -1583,14 +1583,14 @@ namespace HTTP {
                                                                         objtemp["size"]=upfile.size;
                                                                         objtemp["error"]=upfile.error;
 
-                                                                   HTTP::OBJ_ARRAY objtemp1;
+                                                                   http::OBJ_ARRAY objtemp1;
                                                                  objtemp1.push(std::move(objtemp));      
                                                                   files[objname].push(std::move(objtemp1));       
 
                                                           }else{
                                                                  
 
-                                                                  HTTP::OBJ_VALUE objtemp;
+                                                                  http::OBJ_VALUE objtemp;
                                                                   objtemp[key2name].set_array();
                                                                   objtemp[key2name]["filename"]=upfile.filename;
                                                                         objtemp[key2name]["tempfile"]=upfile.tempfile;
@@ -1608,7 +1608,7 @@ namespace HTTP {
                                                                  
 
                                                                  files[objname][key1name].set_array();
-                                                                  HTTP::OBJ_VALUE objtemp;
+                                                                  http::OBJ_VALUE objtemp;
                                                                   objtemp.set_array();
                                                                   objtemp["filename"]=upfile.filename;
                                                                         objtemp["tempfile"]=upfile.tempfile;
@@ -1637,7 +1637,7 @@ namespace HTTP {
                                                       //只有一个
                                                       if(key1name.empty()){
                                                           files[objname].set_array();  
-                                                          HTTP::OBJ_VALUE objtemp;
+                                                          http::OBJ_VALUE objtemp;
                                                           objtemp.set_array();
                                                           objtemp["filename"]=upfile.filename;
                                                             objtemp["tempfile"]=upfile.tempfile;
@@ -1836,12 +1836,12 @@ namespace HTTP {
                               unsigned int j=0;
                               for(j=0;j<qsize;j++){
                                     if(buffer_value[j]==0x3D){
-                                          header_temp=HTTP::url_decode(header_value.data(),header_value.length());
+                                          header_temp=http::url_decode(header_value.data(),header_value.length());
                                           header_value.clear(); 
                                           partype=1;
                                           continue;    
                                     }else if(buffer_value[j]==0x26){
-                                          header_input=HTTP::url_decode(header_value.data(),header_value.length());
+                                          header_input=http::url_decode(header_value.data(),header_value.length());
                                           procssxformurlencoded();
                                           header_value.clear();  
                                           partype=2;   
@@ -1850,14 +1850,14 @@ namespace HTTP {
                                     header_value.push_back(buffer_value[j]);
                               }
                               if(partype==1){
-                                    header_input=HTTP::url_decode(header_value.data(),header_value.length());
+                                    header_input=http::url_decode(header_value.data(),header_value.length());
                                     procssxformurlencoded();
                               }else if(partype==2){
-                                    header_temp=HTTP::url_decode(header_value.data(),header_value.length());
+                                    header_temp=http::url_decode(header_value.data(),header_value.length());
                                     header_input.clear();
                                     procssxformurlencoded();    
                               }else if(header_value.size()>0){
-                                    header_temp=HTTP::url_decode(header_value.data(),header_value.length());
+                                    header_temp=http::url_decode(header_value.data(),header_value.length());
                                     header_input.clear();
                                     procssxformurlencoded();  
                               }

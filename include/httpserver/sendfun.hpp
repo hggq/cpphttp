@@ -7,7 +7,7 @@
 #include <map>
 #include <string>
 
-namespace HTTP{
+namespace http{
     void send_data(std::string name){
    
    _threadclientpeer->send(name);

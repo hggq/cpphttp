@@ -12,8 +12,8 @@
 #include <mysqlx/xdevapi.h>
 #include "Clientpeer.h"
  
-using namespace HTTP;
- namespace HTTP { 
+using namespace http;
+ namespace http { 
         
         class BOOST_SYMBOL_VISIBLE clientapi {
         public:
@@ -24,8 +24,8 @@ using namespace HTTP;
     typedef boost::function<int(const char *,int)> webscoket_callback_t;//websocket send
    // typedef boost::function<void(const char *,int)> webscoket_readcall_t;//websocket read
    typedef boost::function<mysqlx::SqlResult(std::string&,size_t)> mysql_callbacksql_t;
-   typedef boost::function<boost::function<std::string(HTTP::OBJ_VALUE&)>(std::string)> viewmethod_callback_t;
-   typedef boost::function<boost::function<std::string(HTTP::clientpeer &)>(std::string)> modulemethod_callback_t;
+   typedef boost::function<boost::function<std::string(http::OBJ_VALUE&)>(std::string)> viewmethod_callback_t;
+   typedef boost::function<boost::function<std::string(http::clientpeer &)>(std::string)> modulemethod_callback_t;
     typedef boost::function<mysqlx::RowResult(std::string&,size_t)> mysql_callbackand_t;
     typedef boost::function<bool(std::list<std::string>&,size_t)> mysql_callbacksql_rollback;
  
@@ -50,12 +50,12 @@ using namespace HTTP;
 
              mysql_callbacksql_rollback api_mysqlcommit;  
 
-             std::function<HTTP::clientpeer*()>  getpeer; 
+             std::function<http::clientpeer*()>  getpeer; 
              std::function<std::string&()>  getoutput;  
              
             
-            //  /*static*/ thread_local  HTTP::OBJ_VALUE vobj;
-               clientapi& operator<<(HTTP::OBJ_VALUE &a){
+            //  /*static*/ thread_local  http::OBJ_VALUE vobj;
+               clientapi& operator<<(http::OBJ_VALUE &a){
                     this->getoutput().append(a.to_string());
                     return *this;
                 }

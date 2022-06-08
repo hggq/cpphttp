@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace HTTP {
+namespace http {
 /*
 *  utf-16转utf8
 */
