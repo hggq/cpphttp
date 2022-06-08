@@ -28,24 +28,24 @@ public:
         std::cout<<"onclose"<<std::endl;
     }
      void timeloop() {
-       std::shared_ptr<http::clientpeer> peer=weakpeer.lock();
+        std::shared_ptr<http::clientpeer> peer=weakpeer.lock();
         if(peer){
-                std::cout<<"timeloop:"<<std::endl;
-                std::string aa="looptests";
-                 std::string outhello;
-                            peer->ws->makeWSText(aa, outhello);
-                           peer->send(outhello);    
+            std::cout<<"timeloop:"<<std::endl;
+            std::string aa="looptests";
+            std::string outhello;
+            peer->ws->makeWSText(aa, outhello);
+            peer->send(outhello);    
 
-             //   peer->send(aa);
-             if(outcount==4){
-                 timeloop_num=0;
-                 outcount=0;
-                 return;
-             }
-             outcount++;
-         }else{
+            //   peer->send(aa);
+            if(outcount==4){
+                timeloop_num=0;
+                outcount=0;
+                return;
+            }
+            outcount++;
+        }else{
             std::cout<<"peer is die!"<<std::endl;
-         }
+        }
     }
     void onfiles(std::string_view filename) {
         std::cout<<"--------onfiles:--------"<<filename<<std::endl;

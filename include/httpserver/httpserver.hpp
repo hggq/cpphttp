@@ -988,6 +988,7 @@ public:
     }
       bool reloadmysql=true; 
     bool reloadserverconfig=true; 
+    bool alonehttpserver=true; 
      unsigned int  updatetimetemp=0;
      _initwebsocketmethodregto(websocketmethodcallback);
     _inithttpmethodregto(methodcallback);
@@ -1023,8 +1024,11 @@ public:
      std::string exfile="/tmp/httpexpid.locksocket";
      asio::io_context io_c;
      asio::local::stream_protocol::socket s(io_c);
-     s.connect(asio::local::stream_protocol::endpoint(exfile.c_str()));
-
+    try{
+         s.connect(asio::local::stream_protocol::endpoint(exfile.c_str()));
+    }catch (std::exception& e){
+      alonehttpserver=false;
+     }
      unsigned char buf[6];
      unsigned int  temp=0;
      union pidtochar{
@@ -1061,18 +1065,25 @@ public:
          buf[2]=pidex.c[1];
          buf[3]=pidex.c[2];
          buf[4]=pidex.c[3];
-        	try
-				{
-         asio::write(s, asio::buffer(buf, 5));
-         	}catch (std::exception& e)
-				{
-					//std::cout<<" watch http "<<e.what() << std::endl;
-          io_context.stop();  
-          
-          break;
-				}
 
-      std::this_thread::sleep_for(std::chrono::seconds(4));  
+        std::this_thread::sleep_for(std::chrono::seconds(4));  
+        
+        if(alonehttpserver){
+            try
+            {
+            asio::write(s, asio::buffer(buf, 5));
+              }catch (std::exception& e)
+            {
+              //std::cout<<" watch http "<<e.what() << std::endl;
+              io_context.stop();  
+              
+              break;
+            }
+        }
+
+     
+
+      
      }   
   }
   void run() {
