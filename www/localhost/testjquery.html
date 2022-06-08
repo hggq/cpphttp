@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
-    <title>安平县驰创丝网制品有限公司</title>
+    <title>有限公司</title>
     
     <!-- HTML5 shim 和 Respond.js 是为了让 IE8 支持 HTML5 元素和媒体查询（media queries）功能 -->
     <!-- 警告：通过 file:// 协议（就是直接将 html 页面拖拽到浏览器中）访问页面时 Respond.js 不起作用 -->
@@ -23,7 +23,7 @@
   </head>
   <body> 
   <p>提交表单测试 </p>
-  <form method="post" enctype="multipart/form-data" name="form1" id="form1" action="/module/post?aabb=1122">
+  <form method="post" enctype="multipart/form-data" name="form1" id="form1" action="/weibo/post?aabb=1122">
     <p>
       <label for="textfield">Text Field:</label>
       <input type="text" name="textfield" id="textfield">
@@ -53,7 +53,7 @@
       <input type="submit" name="submit" id="submit" value="Submit">
     </p>
   </form>
-  <form id="form2" name="form2" method="post" action="/module/post?aabb=1122">
+  <form id="form2" name="form2" method="post" action="/weibo/post?aabb=1122">
     <p>
       <label for="textfield2">Text Field:</label>
       <input type="text" name="textfield2" id="textfield2">
@@ -104,13 +104,13 @@
 	  <script language="javascript">
 	  
 	  function uploadajax(){
-		     $.post("/module/hello?aabb=1122",{aa:$("#textfield2").val(),bb:$("#textarea2").val()},function(result){
+		     $.post("/weibo/urlpost?aabb=1122",{aa:$("#textfield2").val(),bb:$("#textarea2").val()},function(result){
 			 
 		  });
 	  }
 	  
 	function axiopost(){
-		axios.post('/user', {
+		axios.post('/weibo/formpost', {
 			firstName: 'Fred',
 			lastName: 'Flintstone'
 		  })
@@ -124,7 +124,7 @@
 		  
 	function typepost(){
 		   $.ajax({
-        url:"/Frontajax/upload",
+        url:"/weibo/xmlupload",
         type:"POST",
         processData: false,
         contentType:"application/xml",
@@ -153,7 +153,7 @@
       fd.append("file",$(this).get(0).files[0]);
       fd.append("hash",$("#hashid").val());
       $.ajax({
-        url:"/Frontajax/upload",
+        url:"/weibo/fileupload",
         type:"POST",
         processData: false,
         contentType:false,

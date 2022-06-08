@@ -121,7 +121,7 @@ return false;
 <form id="sendFileForm">
 <input id="file" type="file" multiple />
 <input type="submit" value="Send" />
-<input type="button" id="reset" value="清空消息框"/>
+<input type="button" id="reset" value="clear textarea"/>
 </form>
 <br>
 <form id="sendForm">
@@ -134,38 +134,7 @@ return false;
 <textarea id="log" rows="30" cols="100"
             style="font-family: monospace; color: red;"></textarea>
 </form>
-<br>
-<button type="button" onclick="connect();">connect</button>
-<button type="button" onclick="send();">aaa</button>
-<script>	
-url = "wss://www.869869.com/looptest";
-    
-    var socket;
-	function send(){
-		socket.send("broswer");
-	}
-	
-	
-    function connect(){
-        socket = new WebSocket(url);
-        cnt = 1;
-        socket.onopen = function()
-        {
-            socket.send("this is chrome broswer");
-        }
-        socket.onmessage = function(msg)
-        {
-            console.log(msg.data);
-        }
 
-        socket.onerror=function (e) { 
-            for ( var p in e) {
-                console.log(p + "=" + e[p]);
-            }
-
-            }
-    }
-</script>
 </body>
 </html>
 

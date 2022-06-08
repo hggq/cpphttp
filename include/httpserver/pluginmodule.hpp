@@ -71,7 +71,7 @@ thread_local std::string _output;
 thread_local std::string _outputtemp;
 thread_local unsigned int _output_type;
 thread_local bool loadmoduleinitcall=false;
-thread_local http::OBJ_VALUE vobj;
+// thread_local http::OBJ_VALUE vobj;
 //thread_local wwwserver *_wwwhttpserver;
 thread_local http::clientpeer* _threadclientpeer;
 thread_local std::map<std::string,std::map<std::string,std::string>> *_thishostsiteconfig;
@@ -105,7 +105,6 @@ www_method_call modulesenddata(std::string name){
     return httpempty;
 }
 void echoassign(std::string name){
-   // std::cout<<"mb:"<<name<<std::endl;
     _threadclientpeer->_output.append(std::move(name));
     
 }
@@ -115,7 +114,6 @@ void send_data(unsigned int statecode,std::string name);
 void send_data(unsigned int statecode,std::string &name);
 
 void echo_flush(std::string name){
-   // std::cout<<"mb:"<<name<<std::endl;
     _threadclientpeer->_output.append(std::move(name));
     //now send data
 }
@@ -123,7 +121,6 @@ http::clientpeer* getpeer(){
     return _threadclientpeer;
 }
 void echoassignand(std::string& name){
-   // std::cout<<"mb:"<<name<<std::endl;
     _threadclientpeer->_output.append(name);
      
 }
