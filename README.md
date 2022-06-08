@@ -91,7 +91,7 @@ controller/systest.hpp 测试文件
 #include "orm.h"
 #include <chrono>
 #include <thread>
-namespace HTTP {
+namespace http {
 
 std::string home(clientpeer& client){
     client<<"hello world! this use systest inline callback";
@@ -149,7 +149,7 @@ namespace http {
 class loopwebsockets : public websockets_api {
     public:
     unsigned int outcount=0;    
-    loopwebsockets(std::weak_ptr<HTTP::clientpeer> p) : websockets_api(4,0,p){}
+    loopwebsockets(std::weak_ptr<http::clientpeer> p) : websockets_api(4,0,p){}
     ~loopwebsockets() {
         std::cout<<"~loopwebsockets"<<std::endl;
     }
@@ -161,7 +161,7 @@ public:
         std::cout<<"onclose"<<std::endl;
     }
      void timeloop() {
-       std::shared_ptr<HTTP::clientpeer> peer=weakpeer.lock();
+       std::shared_ptr<http::clientpeer> peer=weakpeer.lock();
         if(peer){
                 std::cout<<"timeloop:"<<std::endl;
                 std::string aa="looptests";
@@ -185,14 +185,14 @@ public:
     }
     void onmessage(std::string_view data) {
         std::cout<<"onmessage:"<<data<<std::endl;
-        std::shared_ptr<HTTP::clientpeer> peer=weakpeer.lock();
+        std::shared_ptr<http::clientpeer> peer=weakpeer.lock();
         if(peer){
                 std::string outhello;
                 peer->ws->makeWSText(data, outhello);
                 peer->send(outhello);   
         }
     }
-    static std::shared_ptr<loopwebsockets> create(std::weak_ptr<HTTP::clientpeer> p) {
+    static std::shared_ptr<loopwebsockets> create(std::weak_ptr<http::clientpeer> p) {
         return std::make_shared<loopwebsockets>(p);
     }
 };
