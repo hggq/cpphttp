@@ -82,7 +82,6 @@
 #include "WebSocketparse.h"
 
 #include "threadpool.h"
-#include "systest.hpp"
 #include "reghttpmethod.hpp"
 #include "Websockets.hpp"
 #include "regwebsocketmethod.hpp"

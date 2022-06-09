@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+    <title>Top navbar example · Bootstrap v5.1</title>
+    <!-- Bootstrap core CSS -->
+<link href="assets/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+
+    
+    <!-- Custom styles for this template -->
+    <link href="navbar-top.css" rel="stylesheet">
+  </head>
+  <body>
+    
+<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">c++ web frameworks</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav me-auto mb-2 mb-md-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="index.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="testjquery.html">Downloads</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="websocket.html">Documents</a>
+        </li>
+      </ul>
+      <form class="d-flex">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <div class="bg-light p-5 rounded">
+    <h1>c++ web frameworks</h1>
+    <p class="lead">This is a very modern c++ web framework that supports HTTP, ORM, and WebSockets services.</p>
+    <a class="btn btn-lg btn-primary" href="#" role="button">View docs &raquo;</a>
+  </div>
+
+  <div class="row align-items-md-stretch">
+    <div class="col-md-7">
+      <div class="h-100 p-2 rounded-3">
+        <h2>Example</h2>
+        <pre>
+        <code class="language-cpp">
+#include &quot;orm.h&quot;
+#include &lt;chrono&gt;
+#include &lt;thread&gt;
+namespace http {
+  std::string home(clientpeer&amp; client){
+    client&lt;&lt;&quot;&lt;p&gt;hello world!&lt;/p&gt;&quot;;
+    client&lt;&lt;&quot;&lt;p&gt;&quot;;
+    client&lt;&lt;client.session[&quot;userid&quot;]&lt;&lt;&quot;&lt;/p&gt;&quot;;
+    orm::sms::News comnews;
+    comnews.where(&quot;newsid&gt;&quot;,1000).order(&quot;newsid DESC&quot;).limit(5).fetch();
+    if(comnews.size()&gt;0){
+      for(auto &amp;bb:comnews){
+        client&lt;&lt;&quot;&lt;p&gt;&quot;&lt;&lt;bb.newsid&lt;&lt;&quot; &quot;&lt;&lt;bb.newtitle&lt;&lt;&quot;&lt;/p&gt;&quot;;
+      }
+    }
+    return &quot;&quot;;
+  }
+}
+        </code>
+        </pre>
+       
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="h-100 p-2 bg-light border rounded-3">
+        <h2>Notes</h2>
+        <p>home is the registered callback function,<br/>code in the controller/systest.hpp file <br/> Registration point in common/reghttpmethod.hpp file,<br/>
+          _inithttpmethodregto function add one line</p>
+          <pre><code class="language-cpp">methodcallback.emplace("systest/home",home);</code></pre>
+        <p>"systest/home" is URL path</p>  
+         
+      </div>
+    </div>
+  </div>
+
+  <div class="row align-items-md-stretch">
+    <div class="col-md-8">
+      <div class="h-100 p-2 rounded-3">
+        <h2>Output</h2>
+        <p><img src="images/example.png" style="width:100%;"></p>
+       
+      </div>
+    </div>
+
+  </div>
+  
+</main>
+
+
+    <script src="assets/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="plugins/highlight/styles/default.min.css">
+<script src="plugins/highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+      
+  </body>
+</html>

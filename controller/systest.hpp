@@ -1,9 +1,24 @@
 #include "orm.h"
 #include <chrono>
 #include <thread>
+
 namespace http {
 
 std::string home(clientpeer& client){
+    client<<"<p>hello world!</p>";
+    client<<"<p>";
+    client<<client.session["aaa"]<<"</p>";
+    orm::sms::News  comnews;
+    comnews.where("newsid>",1000).order("newsid DESC").limit(5).fetch();
+    if(comnews.size()>0){
+      for(auto &bb:comnews){
+         client<<"<p>"<<bb.newsid<<" "<<bb.newtitle<<"</p>";
+      }
+    }
+   return "";
+}
+
+std::string test(clientpeer& client){
     client<<"hello world! this use systest inline callback";
     client<<"<p><a href=\"/weibo/header\">header</a></p>";
     client<<"<p><a href=\"/weibo/hello\">content</a></p>";
