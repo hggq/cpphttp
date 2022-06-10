@@ -484,9 +484,7 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                 
                                 if(methodcallback.find(modulemethod)!=methodcallback.end()){
                                                 visttype=6;
-                                                std::string sitecontent=methodcallback[modulemethod](peer->getpeer());
-                                                    
-                                                    
+                                                std::string sitecontent=methodcallback[modulemethod](peer->getpeer());               
                                                 if(sitecontent.empty()){
                                                     if(peer->vobj.as_int()==0){
                                                         peer->send(200);
@@ -513,12 +511,10 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                         if (stat(moduleso.c_str(),&modso)==0){
                                                 visttype=3;
                                                 auto sitemodloadis=http::loadcontrol(modulemethod);
-                                                //std::string sitecontent=sitemodloadis(HTTP::vobj);
                                                 std::string sitecontent=sitemodloadis(peer->getpeer());
                                                     
                                                 if(sitecontent.empty()){
                                                     if(peer->vobj.as_int()==0){
-                                                                 //   peer->send(200,HTTP::_output);
                                                       peer->send(200);
                                                     }
                                                 }else{
@@ -537,7 +533,6 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                     modulemethod="default"; 
                                     if(methodcallback.find(modulemethod)!=methodcallback.end()){
                                                 visttype=6;
-                                                //std::string sitecontent=methodcallback[modulemethod](HTTP::vobj);
                                                 std::string sitecontent=methodcallback[modulemethod](peer->getpeer());    
                                                 if(sitecontent.empty()){
                                                     if(peer->vobj.as_int()==0){
@@ -565,7 +560,6 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                         if (stat(moduleso.c_str(),&modso)==0){
                                                 visttype=2;
                                                 auto sitemodloadis=http::loadcontrol(modulemethod);
-                                                //std::string sitecontent=sitemodloadis(HTTP::vobj);
                                                 std::string sitecontent=sitemodloadis(peer->getpeer());    
                                                 if(sitecontent.empty()){
                                                     if(peer->vobj.as_int()==0){
@@ -611,9 +605,6 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                 visttype=7;
                             }
                         }
-                         
-                        
-                        // HTTP::_output.clear();  
                          peer->_output.clear(); 
                          peer->vobj.clear(); 
                          if(peer->header->state.keeplive&&peer->keeplive){
