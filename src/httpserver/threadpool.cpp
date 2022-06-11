@@ -1,7 +1,3 @@
-#ifndef FRAME_THREADPOOL_CPP
-#define FRAME_THREADPOOL_CPP
-
-
 #include <cstdio>
 #include <cstddef>
 #include <stdio.h>
@@ -51,430 +47,408 @@
 #include "pluginmodule.hpp"
 #include "threadpool.h"
 
-namespace http {
-
-
-          void ThreadPool::printthreads(){
+  void ThreadPool::printthreads(){
                std::unique_lock<std::mutex> lck(livemtx);           
               for(auto iter=threadlist.begin();iter!=threadlist.end();iter++){
                         std::cout<<iter->first<<" isbusy:"<<iter->second.busy<<" ip:"<<(iter->second.ip)<<" url:"<<iter->second.url<<std::endl;
               }
         }
 
-         unsigned int ThreadPool::getpoolthreadnum(){
-                    
-          return threadlist.size();
+unsigned int ThreadPool::getpoolthreadnum() { return threadlist.size(); }
+
+bool ThreadPool::live_end(std::thread::id id) {
+
+  auto iter = threadlist.find(id);
+  if (iter != threadlist.end()) {
+    std::unique_lock<std::mutex> lck(livemtx);
+    unsigned long long temp = time((time_t *)NULL);
+    threadlist[id].end = temp;
+    return true;
+  } else {
+    return false;
+  }
+}
+bool ThreadPool::live_add(std::thread::id id) {
+  unsigned long long temp = time((time_t *)NULL);
+  std::unique_lock<std::mutex> lck(livemtx);
+  threadlist[id].begin = temp;
+  return true;
+}
+
+inline void ThreadPool::threadloop(int index) {
+  std::thread::id thread_id = std::this_thread::get_id();
+  while (!this->stop) {
+
+ 
+    std::unique_lock<std::mutex> lock(this->queue_mutex);
+    this->condition.wait(lock, [this, thread_id] {
+      return this->stop || !this->clienttasks.empty() ||
+             this->threadlist[thread_id].stop;
+    });
+    if (this->stop && this->clienttasks.empty())
+      break;
+
+    if (this->threadlist[thread_id].stop) {
+      break;
+    }
+
+    if (this->clienttasks.empty())
+      continue;
+
+    auto task = std::move(this->clienttasks.front());
+    this->clienttasks.pop();
+    lock.unlock();
+
+    live_add(thread_id);
+    livethreadcount += 1;
+    this->threadlist[thread_id].busy = true;
+
+    if(task->httptype==0){
+      this->http_clientrun(task);
+    }else{
+       this->http_websocketsrun(task);
+    }
+    
+    livethreadcount -= 1;
+    this->threadlist[thread_id].busy = false;
+    live_end(thread_id);
+     
+  }
+
+  this->threadlist[thread_id].close = true;
+}
+bool ThreadPool::fixthread() {
+
+  unsigned int tempcount = threadlist.size();
+  if(tempcount<128){
+    return false;
+  }
+  if (tempcount < (mixthreads.load() + 10)) {
+    return false;
+  }
+
+   
+  {
+
+    std::unique_lock<std::mutex> lock(queue_mutex);
+    for (auto &iter : threadlist) {
+      if (iter.second.busy == false) {
+        iter.second.stop = true;
+        tempcount--;
+      }
+      if (tempcount <= mixthreads.load()) {
+        break;
+      }
+    }
+    lock.unlock();
+  }
+
+  condition.notify_all();
+
+  std::unique_lock<std::mutex> lock(queue_mutex);
+  for (auto iter = threadlist.begin(); iter != threadlist.end();) {
+    if (iter->second.close) {
+      if (iter->second.thread.joinable()) {
+        iter->second.thread.join();
+        threadlist.erase(iter++);
+        pooltotalnum -= 1;
+ 
+      } else {
+        iter++;
+      }
+    } else {
+      iter++;
+    }
+  }
+  lock.unlock();
+
+  return true;
+}
+
+bool ThreadPool::addthread(size_t threads) {
+
+  if (threadlist.size() > 2048) {
+    return false;
+  }
+ 
+  for (size_t i = 0; i < threads; ++i) {
+    struct threadinfo_t tinfo;
+    tinfo.thread = std::thread(
+        std::bind(&ThreadPool::threadloop, this, pooltotalnum.load()));
+    // tinfo.thread=std::thread(&ThreadPool::threadloop,this,pooltotalnum.load());
+    std::thread::id temp = tinfo.thread.get_id();
+    tinfo.id = temp;
+    threadlist[tinfo.id] = std::move(tinfo);
+    pooltotalnum++;
+  }
+  return true;
+}
+
+// the constructor just launches some amount of workers
+inline ThreadPool::ThreadPool(size_t threads) : stop(false) {
+  pooltotalnum.store(0);
+  livethreadcount.store(0);
+  mixthreads.store(32);
+  for (size_t i = 0; i < threads; ++i) {
+   
+    struct threadinfo_t tinfo;
+    tinfo.thread = std::thread(
+        std::bind(&ThreadPool::threadloop, this, pooltotalnum.load()));
+    tinfo.id = tinfo.thread.get_id();
+    threadlist[tinfo.id] = std::move(tinfo);
+    pooltotalnum++;
+
+  }
+}
+
+// the destructor joins all threads
+inline ThreadPool::~ThreadPool() {
+  {
+    std::unique_lock<std::mutex> lock(queue_mutex);
+    stop = true;
+  }
+  condition.notify_all();
+  
+  for (auto &worker : threadlist) {
+    if (worker.second.thread.joinable()) {
+      worker.second.thread.join();
+    }
+  }
+   
+}
+
+bool ThreadPool::addclient(std::shared_ptr<clientpeer> peer) {
+  if (!stop) {
+    std::unique_lock<std::mutex> lock(queue_mutex);
+    clienttasks.emplace(peer);
+  }
+
+  condition.notify_one();
+  return false;
+}
+
+void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
+ try
+ { 
+  http::_threadclientpeer=peer.get();
+  
+  std::thread::id thread_id=std::this_thread::get_id();
+   clientapi& pnn =clientapi::get();
+  
+   if(!peer->header->getfinish()){
+        peer->send(400,"Request bad");
+        return;
+    }
+   unsigned int offsetnum=0;
+    for(;offsetnum<peer->header->host.size();offsetnum++){
+          threadlist[thread_id].url[offsetnum]=peer->header->host[offsetnum];
+          if(offsetnum>60){
+              break;
+          }
+    }
+    for(int j=0;j<peer->header->urlpath.size();j++){
+        threadlist[thread_id].url[offsetnum]=peer->header->urlpath[j];
+        offsetnum++;
+        if(offsetnum>63){
+            break;
         }
+    }
+    threadlist[thread_id].url[offsetnum]=0x00;
+    
 
-        bool ThreadPool::live_end(std::thread::id id){
-            std::unique_lock<std::mutex> lck(livemtx); 
-            auto iter=threadlist.find(id);
-            if(iter!=threadlist.end()){
-                  
-                  unsigned long long temp=time((time_t *)NULL);
-                  threadlist[id].end=temp;  
-                  return true;
-            }else{
-                return false;
-            }
+    { 
+        unsigned int offsetnum=peer->remote_ip.size();
+        if(offsetnum<46){
+            memcpy(threadlist[thread_id].ip, peer->remote_ip.data(),offsetnum);
+            threadlist[thread_id].ip[offsetnum]=0x00;
         }
-        bool ThreadPool::live_add(std::thread::id id){
-                  unsigned long long temp=time((time_t *)NULL);
-                  std::unique_lock<std::mutex> lck(livemtx);
-                  threadlist[id].begin=temp;  
-          return true;
-        }
-
-        
-        inline void ThreadPool::threadloop(int index){
-                        std::thread::id thread_id=std::this_thread::get_id();
-                        while(!this->stop)
-                        {
-                            //std::cout<<"\r\n-------begin loop-------\r\n";
-                            {
-                                memset(threadlist[thread_id].url,0,100); 
-                                memset(threadlist[thread_id].ip,0,45); 
-                            std::unique_lock<std::mutex> lock(this->queue_mutex);
-
-                            this->condition.wait(lock,
-                                    [this,thread_id]{ return this->stop || !this->socketlists.empty() || this->threadlist[thread_id].stop; });
-                                if(this->stop && this->socketlists.empty())
-                                    break;
-
-                                if(this->threadlist[thread_id].stop){
-                                    break;
-                                }
-                                if(this->socketlists.empty())
-                                    continue;   
-
-                            
-                                socketlists_t b(std::move(this->socketlists.front()));
-                                this->socketlists.pop();
-                        
-                                lock.unlock();
-                                
-                            live_add(thread_id);
-                            livethreadcount+=1;
-                            this->threadlist[thread_id].busy=true;
-                            
-                            if(b.isssl){
-                                this->sitehttpsslprocess(std::move(b.socket),b.context_,b.isssl);
-                            }else{
-                                this->sitehttpprocess(std::move(b.socket),b.context_,b.isssl);
-                            }
-                            
-                            livethreadcount-=1;
-                            this->threadlist[thread_id].busy=false;
-                            live_end(thread_id);
-                            //std::cout<<" livethreadcount "<<livethreadcount<<std::endl;            
-                            }
-                        }
-                
-                this->threadlist[thread_id].close=true;
-                
-        }
-        bool ThreadPool::fixthread()
-        {
-            
-            unsigned int tempcount=threadlist.size();
-
-            if(tempcount<(mixthreads.load()+2)){
-                    return false;
-            }
-
-            std::cout<<"\r\n=========fixthread=="<<pooltotalnum<<"======\r\n";
-            {      
-                    
-                    std::unique_lock<std::mutex> lock(queue_mutex);
-                    for(auto &iter:threadlist){
-                        if(tempcount<=mixthreads.load()){
-                            break;
-                        }
-                        if(iter.second.busy==false){
-                            iter.second.stop=true; 
-                            tempcount--;
-                        }
-                       
-                        
-                    }
-                    lock.unlock();
-            }
-
-            condition.notify_all();
-
-            std::unique_lock<std::mutex> lock(queue_mutex);
-            for(auto iter=threadlist.begin();iter!=threadlist.end();){
-                        if(iter->second.close){
-                            if(iter->second.thread.joinable())
-                            {
-                                iter->second.thread.join();   
-                                threadlist.erase(iter++); 
-                                pooltotalnum-=1;
-                                std::cout<<"\r\n<<<<<<<=========>>>>>>>fixthread=="<<pooltotalnum<<">>>>>>>>>>>\r\n";
-                            }else{
-                                iter++;
-                            }
+    }
+   std::cout<<"--------------------------------------------"<<std::endl;
+   std::cout<<"remote_ip:"<<peer->remote_ip<<std::endl;
+   std::cout<<"remote_port:"<<peer->remote_port<<std::endl;
+   std::cout<<"local_ip:"<<peer->local_ip<<std::endl;
+   std::cout<<"local_port:"<<peer->local_port<<std::endl;
+   std::cout<<"--------------------------------------------"<<std::endl;
+    peer->getfileinfo();
+   unsigned char visttype=0;
+                         
+                        if(peer->pathtype==1){
+                             
+                            peer->sendfileto();
+                            visttype=1;
                         }else{
-                            iter++;
-                        }
-                    
-                    }
-            lock.unlock();
-            
-            return true;
-        }
-
-        bool ThreadPool::addthread(size_t threads)
-        {
-            
-            if(pooltotalnum>2048){
-                return false;
-            }
-            std::cout<<"\r\n=========addthread=="<<pooltotalnum<<"======\r\n";
-            unsigned int offset=threadlist.size();
-            for(size_t i = 0;i<threads;++i)
-            {
-                struct threadinfo_t tinfo;
-                
-                tinfo.thread=std::thread(std::bind(&ThreadPool::threadloop,this,pooltotalnum.load()));
-                std::thread::id temp=tinfo.thread.get_id();
-                tinfo.id=temp;
-                threadlist[tinfo.id]=std::move(tinfo);
-                pooltotalnum++;
-                if(pooltotalnum>1000000){
-                    pooltotalnum=0;
-                }
-            }
-            return true;
-        }
-
-       ThreadPool::ThreadPool()
-            :   stop(false)
-        {
-
-        }
-        // the constructor just launches some amount of workers
-        ThreadPool::ThreadPool(unsigned long threads)
-            :   stop(false)
-        {
-            pooltotalnum.store(0);  
-            livethreadcount.store(0);  
-            mixthreads.store(threads);
-            for(size_t i = 0;i<threads;++i)
-            {
-                struct threadinfo_t tinfo;
-                //tinfo.index=i;
-                tinfo.thread=std::thread(std::bind(&ThreadPool::threadloop,this,pooltotalnum.load()));
-                //tinfo.thread=std::thread(&ThreadPool::threadloop,this,pooltotalnum.load());
-                tinfo.id=tinfo.thread.get_id();
-                threadlist[tinfo.id]=std::move(tinfo);
-                pooltotalnum++;
-                if(pooltotalnum>100000000){
-                    pooltotalnum.store(1); 
-                } 
-            }     
-        }
-
-        void ThreadPool::addtask(asio::ip::tcp::socket socket, asio::ssl::context &context_,bool isssl){ 
-                if(!stop){
-                    std::unique_lock<std::mutex> lock(queue_mutex);
-                    socketlists_t a{std::move(socket),context_,isssl};
-                    socketlists.emplace(std::move(a));
-                }
-            condition.notify_one();
-        
-        }
-
-        // the destructor joins all threads
-        ThreadPool::~ThreadPool()
-        {
-            {
-                std::unique_lock<std::mutex> lock(queue_mutex);
-                stop = true;
-            }
-            condition.notify_all();
-            std::cout<<"------------ join begin------------ "<<std::endl;
-            for(auto &worker: threadlist){
-                if(worker.second.thread.joinable())
-                {
-                    worker.second.thread.join();
-
-                }
-            }
-            std::cout<<"------------ join end------------ "<<std::endl;    
-        }
-        inline void ThreadPool::sitehttpprocess(asio::ip::tcp::socket socket,asio::ssl::context &context_,bool isssl){
-
-                            try
-                        {
-
-                            std::thread::id thread_id=std::this_thread::get_id();
-
-                            std::cout<<"---------------------"<<this->threadlist.size()<<std::endl;  
-
-                            //std::unique_lock<std::mutex> lck(livemtx);
-                            // threadlist[thread_id].url=temp;  
-
-
-                            http::_output.clear();      
-
-                            char data[2051];
-                            std::string httpheader;
-                            std::size_t n = socket.read_some(asio::buffer(data));
-                            
-                            memcpy(threadlist[thread_id].url, data,99);
-                            threadlist[thread_id].url[99]=0x00;
-                            httpheader=socket.remote_endpoint().address().to_string();
-                            memcpy(threadlist[thread_id].ip, httpheader.data(),15);
-                            threadlist[thread_id].ip[15]=0x00;
-
-                            // std::this_thread::sleep_for(std::chrono::seconds(5));
-                            int i=0;
-                            for(;i<n;i++){
-                                if(data[i]==0x20){
-                                    i++;
-                                    break;
+                            if(_serverconfig.find(peer->header->host)!=_serverconfig.end()){
+                                if(_serverconfig[peer->header->host].find("controlsopath")!=_serverconfig[peer->header->host].end()){
+                                        _thishostcontrolsopath=_serverconfig[peer->header->host]["controlsopath"];
                                 }
-                            }
-                            int urlmaxoffset=i;
-                            for(;urlmaxoffset<n;urlmaxoffset++){
-                                if(data[urlmaxoffset]==0x20){
-                                    
-                                    break;
+                                    if(_serverconfig[peer->header->host].find("viewsopath")!=_serverconfig[peer->header->host].end()){
+                                        _thishostviewsopath=_serverconfig[peer->header->host]["viewsopath"];
                                 }
-                                
-                            }
-
-                            if(data[i]=='/'){
-                                i++;
-                            }
-                            std::string filename,method;
-                            for(;i<urlmaxoffset;i++){
-                                if(data[i]=='/'||data[i]==0x20){
-                                    i++;
-                                    break;
-                                }
-                                filename.push_back(data[i]);
-                            }
-                            for(;i<urlmaxoffset;i++){
-                                if(data[i]=='/'||data[i]==0x20||data[i]=='?'){
-                                    //i++;
-                                    break;
-                                }
-                                method.push_back(data[i]);
-                            }
-                            std::string sofile="["+filename+"]["+method+"]";
-
-                            if(urlmaxoffset[i]=='?'){
-                                 i++;
-                                 std::string varkey;
-                                 std::string varvalue;   
-                                   for(;i<urlmaxoffset;i++){
-                                        if(data[i]=='='){
-                                            //i++;
-                                            varkey=varvalue;
-                                            varvalue.clear();
-                                            continue;
-                                        }else if(data[i]=='&'){
-                                            _viewobj[varkey]=varvalue;
-                                            varkey.clear();
-                                            varvalue.clear();
-                                                continue;
-                                        }
-                                        varvalue.push_back(data[i]);
+                           }
+                        
+                            if(peer->header->pathinfo.size()>0){
+                                struct stat modso;
+                                std::string modulemethod,moduleso;
+                                if(peer->header->pathinfo.size()>1){
+                                    if(peer->header->pathinfo[1][0]=='h'&&strcasecmp(peer->header->pathinfo[1].c_str(),"home.html")==0){
+                                        modulemethod=peer->header->pathinfo[0]+"/home";
+                                    }else{
+                                        modulemethod=peer->header->pathinfo[0]+"/"+peer->header->pathinfo[1];
                                     }
-                                if(varkey.size()>0){
-                                    _viewobj[varkey]=varvalue;
-                                            varkey.clear();
-                                            varvalue.clear();
-                                }
-                            }
-                    // livethread[std::this_thread::get_id()]=time((time_t *)NULL);
-
-                    if(method.size()==1){
-                        http::controlmoduleclear("weibo","header");
-                            http::controlmoduleclear("weibo","home");
-                            http::controlmoduleclear("weibo","hello");
-                            http::viewmoduleclear("about","jianjie");
-                            http::viewmoduleclear("about","head");
-                            method="home";
-                    }
-
-            _viewobj["name"]="网民吗悲伤";
-            std::string methodcontent;
-                        methodcontent.append(filename);
-                        methodcontent.push_back('/');
-                        methodcontent.append(method);
-            auto bb=http::loadcontrol(methodcontent);
-        // methodcontent=http::loadcontrol("chat/hello")(obj);
-            methodcontent.clear();
-            methodcontent=bb(_viewobj);
-            bb.clear();
-                if(methodcontent.empty()){
-                //std::cout << http::_output<< std::endl;  
-                sofile.append(_output);
-            }else{
-            // std::cout << methodcontent<< std::endl;  
-            sofile.append(methodcontent);
-            }
-            _output.clear();
-        // std::cout << "After library unload." << std::endl;
-
-                            sofile=respdata(sofile);
-                            asio::write(socket, asio::buffer(sofile));
-                            socket.close();   
-                            //std::this_thread::sleep_for(std::chrono::seconds(5));
-
-                    // auto iter=livethread.find(std::this_thread::get_id());
-                    // if(iter!=livethread.end()){
-                    //       livethread.erase(iter);
-                    // }
-                        }catch (std::exception& e)
-                        {
-                            std::cout<<" http content error "<<e.what() << std::endl;
-                        }
-
-
-        }
-        inline void ThreadPool::sitehttpsslprocess(asio::ip::tcp::socket rawsocket,asio::ssl::context &context_,bool isssl){
-
-            try
-            {
-                //  std::cout<<"---------------------------------"<<std::endl;
-                
-                asio::ssl::stream<asio::ip::tcp::socket> socket(std::move(rawsocket), context_);
-                asio::error_code error;
-                socket.handshake(asio::ssl::stream_base::server,error);
-                
-                _output.clear();  
-
-                char data[2051];
-                std::size_t n = socket.read_some(asio::buffer(data));
-                          int i=0;
-                            for(;i<n;i++){
-                                if(data[i]==0x20){
-                                    i++;
-                                    break;
-                                }
-                            }
-                            int urlmaxoffset=i;
-                            for(;urlmaxoffset<n;urlmaxoffset++){
-                                if(data[urlmaxoffset]==0x20){
-                                    
-                                    break;
+                                }else{
+                                    modulemethod=peer->header->pathinfo[0];
                                 }
                                 
-                            }
+                                if(methodcallback.find(modulemethod)!=methodcallback.end()){
+                                                visttype=6;
+                                                std::string sitecontent=methodcallback[modulemethod](peer->getpeer());               
+                                                if(sitecontent.empty()){
+                                                    if(peer->vobj.as_int()==0){
+                                                        peer->send(200);
+                                                    }
+                                                }else{
+                                                    peer->send(200,sitecontent);
+                                                }
+                                }else{
+                                        if(peer->header->pathinfo.size()==1){
+                                            modulemethod.append("/home");
+                                        }
+                                        if(_serverconfig.find(peer->header->host)!=_serverconfig.end()){
+                                                if(_serverconfig[peer->header->host].find("controlsopath")!=_serverconfig[peer->header->host].end()){
+                                                        moduleso=_serverconfig[peer->header->host]["controlsopath"];
+                                                }
+                                        } 
+                                        if(moduleso.empty()){
+                                            moduleso=_serverconfig["default"]["controlsopath"];
+                                        }
+                                        if(moduleso.size()>0&&moduleso.back()!='/'){
+                                            moduleso.append("/");
+                                        }
+                                        moduleso=moduleso+peer->header->pathinfo[0]+".so";
+                                        if (stat(moduleso.c_str(),&modso)==0){
+                                                visttype=3;
+                                                auto sitemodloadis=http::loadcontrol(modulemethod);
+                                                std::string sitecontent=sitemodloadis(peer->getpeer());
+                                                    
+                                                if(sitecontent.empty()){
+                                                    if(peer->vobj.as_int()==0){
+                                                      peer->send(200);
+                                                    }
+                                                }else{
+                                                    peer->send(200,sitecontent);
+                                                }
+                                                            
+                                        }else if(peer->pathtype==3){
+                                            peer->sendfileto();
+                                            visttype=5;
+                                        }
+                                }
+                                
 
-                            if(data[i]=='/'){
-                                i++;
-                            }
-                            std::string filename,method;
-                            for(;i<urlmaxoffset;i++){
-                                if(data[i]=='/'||data[i]==0x20){
-                                    i++;
-                                    break;
-                                }
-                                filename.push_back(data[i]);
-                            }
-                            for(;i<urlmaxoffset;i++){
-                                if(data[i]=='/'||data[i]==0x20){
-                                    i++;
-                                    break;
-                                }
-                                method.push_back(data[i]);
-                            }
-                            std::string sofile=filename;//+"/"+method;
-                            if(method.size()>0){
-                                sofile.push_back('/'); 
-                                sofile.append(method); 
                             }else{
+                                    std::string modulemethod,moduleso;  
+                                    modulemethod="default"; 
+                                    if(methodcallback.find(modulemethod)!=methodcallback.end()){
+                                                visttype=6;
+                                                std::string sitecontent=methodcallback[modulemethod](peer->getpeer());    
+                                                if(sitecontent.empty()){
+                                                    if(peer->vobj.as_int()==0){
+                                                        peer->send(200);
+                                                    }
+                                                }else{
+                                                    peer->send(200,sitecontent);
+                                                }
+                                }else{
+                                        struct stat modso;
+                                        modulemethod="default/home";
+                                        
+                                        if(_serverconfig.find(peer->header->host)!=_serverconfig.end()){
+                                                if(_serverconfig[peer->header->host].find("controlsopath")!=_serverconfig[peer->header->host].end()){
+                                                        moduleso=_serverconfig[peer->header->host]["controlsopath"];
+                                                }
+                                        } 
+                                        if(moduleso.empty()){
+                                            moduleso=_serverconfig["default"]["controlsopath"];
+                                        }
+                                        if(moduleso.size()>0&&moduleso.back()!='/'){
+                                            moduleso.append("/");
+                                        }
+                                        moduleso=moduleso+"default.so";
+                                        if (stat(moduleso.c_str(),&modso)==0){
+                                                visttype=2;
+                                                auto sitemodloadis=http::loadcontrol(modulemethod);
+                                                std::string sitecontent=sitemodloadis(peer->getpeer());    
+                                                if(sitecontent.empty()){
+                                                    if(peer->vobj.as_int()==0){
+                                                            peer->send(200);
+                                                    }
+                                                }else{
+                                                    peer->send(200,sitecontent);
+                                                }
+                                                            
+                                        }
+                                }
 
                             }    
-
-                
-
-                std::string resp;
-                _viewobj["name"]="网民吗悲伤";
-                auto iter=modulemethodcallfun.find(sofile);
-                if(iter!=modulemethodcallfun.end()){
-                       resp="HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nConnection: keep-alive\r\nContent-length: 9\r\n\r\nIt works!";
-                }else{
-                       resp=iter->second(_viewobj); 
-                }
-                
-                asio::write(socket, asio::buffer(resp));
-
-                //socket.shutdown();
-            // 	//   rawsocket.close();   
-            //         boost::system::error_code ec;
-            // socket.cancel(ec);
-            // socket.async_shutdown([&](...) { socket.close(); };
-            
-            }catch (std::exception& e)
-            {
-                std::printf("echo Exception: %s\n", e.what());
-            }
-        }
+    
+                        }
+                        if(visttype==0){
+                             if(peer->pathtype==2){
+                                   
+                                    bool isshowdirectory=false;
+                                    
+                                    if(_serverconfig.find(peer->header->host)!=_serverconfig.end()){
+                                        if(_serverconfig[peer->header->host].find("directorylist")!=_serverconfig[peer->header->host].end()){
+                                                 if(!_serverconfig[peer->header->host]["directorylist"].empty()){
+                                                        isshowdirectory=true;
+                                                 }
+                                        }
+                                    } 
+                                    if(isshowdirectory==false){
+                                         if(_serverconfig["default"].find("directorylist")!=_serverconfig["default"].end()){
+                                                 if(!_serverconfig["default"]["directorylist"].empty()){
+                                                        isshowdirectory=true;
+                                                 }
+                                        }
+                                    }
+                                    if(isshowdirectory){
+                                         visttype=4;
+                                         peer->displaydirectory(serverconfigpath);
+                                    }
+                            } 
+                            if(visttype==0){
+                                
+                                peer->send(404,peer->header->urlpath);
+                                visttype=7;
+                            }
+                        }
+                         peer->_output.clear(); 
+                         peer->vobj.clear(); 
+                         if(peer->header->state.keeplive&&peer->keeplive){
+                                peer->keeplivemax-=1;
+                                peer->header->headerfinish=0;
+                                peer->header->headerstep=0;
+                                
+                            }
+      peer->looprunpromise.set_value(1);
+   }catch (std::exception& e)
+    {
+           peer->looprunpromise.set_exception(std::current_exception());
+    }              
 }
-#endif
+
+void ThreadPool::http_websocketsrun(std::shared_ptr<clientpeer> peer) {
+  try
+  { 
+      if(peer->ws->isfile){
+          peer->websocket->onfiles(peer->ws->filename);
+      }else{
+        peer->websocket->onmessage(peer->ws->indata);
+      }
+      peer->ws->filename.clear();
+      peer->ws->indata.clear();
+    }catch (std::exception& e)
+    {
+        
+    }
+}
