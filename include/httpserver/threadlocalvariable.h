@@ -1,6 +1,6 @@
 #pragma once
-#ifndef HTTP_THREADLOCALVARIABLE_HPP
-#define HTTP_THREADLOCALVARIABLE_HPP
+#ifndef HTTP_THREADLOCALVARIABLES_HPP
+#define HTTP_THREADLOCALVARIABLES_HPP
 
 #include <iostream>
 #include <mutex>
@@ -10,15 +10,11 @@
 #include <string_view>
 #include <thread>
 //#include "http.hpp"
+#include <mysqlx/xdevapi.h>
 #include "request.h"
-#include "modulemar.hpp"
-#include "http_header.hpp"
-// #include "mysqlplugin.hpp"
- #include "mysqlconfig.hpp"
-// #include "mysqlpool.h"
-#include "Clientpeer.h"
-#include "mysqlproxyfun.h"
-
+#include <boost/function.hpp>
+#include "threadlocalconfig.h"
+#include "serverconfig.h"
 namespace http {
 
 typedef boost::function<void()> callback_t;
@@ -28,28 +24,24 @@ typedef boost::function<mysqlx::RowResult(std::string&,size_t)> mysql_callbackan
 typedef boost::function<mysqlx::SqlResult(std::string&,size_t)> mysql_callbacksql_t;
 typedef boost::function<bool(std::list<std::string>&,size_t)> mysql_callbacksql_rollback;
 typedef boost::function<std::string(http::OBJ_VALUE&)> method_callback_t;
+typedef boost::function<std::string(http::clientpeer&)> www_method_call;
 typedef boost::function<boost::function<std::string(http::OBJ_VALUE&)>(std::string)> modulemethod_callback_t;
-
-std::map<std::size_t,std::vector<std::string>>  sharedmethodchache;
-std::map<std::size_t,method_callback_t>  sharedpathchache,controlpathchache;
-std::mutex loadcontrolmtx,loadviewmtx,moudulecachemethod;
+typedef boost::function<boost::function<std::string(http::clientpeer&)>(std::string)> module_method_call;
 
 
-/////test/////
-thread_local modulemar bbb;
-thread_local http_header _http_header;
 
-thread_local std::string _output;
-thread_local std::string _outputtemp;
-thread_local unsigned int _output_type;
-thread_local bool loadmoduleinitcall=false;
-thread_local http::OBJ_VALUE vobj;
-//thread_local wwwserver *_wwwhttpserver;
-thread_local http::clientpeer* _threadclientpeer;
-thread_local std::map<std::string,std::map<std::string,std::string>> *_thishostsiteconfig;
-thread_local std::string _thishostcontrolsopath;
-thread_local std::string _thishostviewsopath;
-thread_local std::vector<std::string> _header;
+method_callback_t loadview(std::string);
+method_callback_t loadviewnotcall(std::string);
+method_callback_t loadviewfetchnotcall(std::string);
+method_callback_t loadviewobjcall(std::string);
+
+www_method_call loadcontrol(std::string);
+www_method_call modulesendfile(std::string);
+www_method_call modulesenddata(std::string);//websocket使用
+
+threadlocalconfig& getthreadlocalobj();
+serverconfig& getserversysconfig();
+
 
 }
 

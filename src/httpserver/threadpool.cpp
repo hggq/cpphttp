@@ -42,12 +42,13 @@
 
 #include <boost/dll/import.hpp>
 #include <boost/function.hpp>
-#include "serverconfig.h"
-#include "request.h"
-#include "pluginmodule.hpp"
+#include "threadlocalvariable.h"
 #include "threadpool.h"
 
-  void ThreadPool::printthreads(){
+
+namespace http {
+
+   void ThreadPool::printthreads(){
                std::unique_lock<std::mutex> lck(livemtx);           
               for(auto iter=threadlist.begin();iter!=threadlist.end();iter++){
                         std::cout<<iter->first<<" isbusy:"<<iter->second.busy<<" ip:"<<(iter->second.ip)<<" url:"<<iter->second.url<<std::endl;
@@ -75,7 +76,7 @@ bool ThreadPool::live_add(std::thread::id id) {
   return true;
 }
 
-inline void ThreadPool::threadloop(int index) {
+  void ThreadPool::threadloop(int index) {
   std::thread::id thread_id = std::this_thread::get_id();
   while (!this->stop) {
 
@@ -185,7 +186,7 @@ bool ThreadPool::addthread(size_t threads) {
 }
 
 // the constructor just launches some amount of workers
-inline ThreadPool::ThreadPool(size_t threads) : stop(false) {
+  ThreadPool::ThreadPool(size_t threads) : stop(false) {
   pooltotalnum.store(0);
   livethreadcount.store(0);
   mixthreads.store(32);
@@ -202,7 +203,7 @@ inline ThreadPool::ThreadPool(size_t threads) : stop(false) {
 }
 
 // the destructor joins all threads
-inline ThreadPool::~ThreadPool() {
+  ThreadPool::~ThreadPool() {
   {
     std::unique_lock<std::mutex> lock(queue_mutex);
     stop = true;
@@ -230,10 +231,13 @@ bool ThreadPool::addclient(std::shared_ptr<clientpeer> peer) {
 void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
  try
  { 
-  http::_threadclientpeer=peer.get();
+  //http::_threadclientpeer=peer.get();
+  
   
   std::thread::id thread_id=std::this_thread::get_id();
-   clientapi& pnn =clientapi::get();
+  serverconfig&  sysconfigpath=getserversysconfig();
+  threadlocalconfig&  threadlocalvar=getthreadlocalobj();
+  threadlocalvar.peer=peer.get();
   
    if(!peer->header->getfinish()){
         peer->send(400,"Request bad");
@@ -277,12 +281,12 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                             peer->sendfileto();
                             visttype=1;
                         }else{
-                            if(_serverconfig.find(peer->header->host)!=_serverconfig.end()){
-                                if(_serverconfig[peer->header->host].find("controlsopath")!=_serverconfig[peer->header->host].end()){
-                                        _thishostcontrolsopath=_serverconfig[peer->header->host]["controlsopath"];
+                            if(sysconfigpath.serverconfig.find(peer->header->host)!=sysconfigpath.serverconfig.end()){
+                                if(sysconfigpath.serverconfig[peer->header->host].find("controlsopath")!=sysconfigpath.serverconfig[peer->header->host].end()){
+                                        threadlocalvar.hostcontrolsopath=sysconfigpath.serverconfig[peer->header->host]["controlsopath"];
                                 }
-                                    if(_serverconfig[peer->header->host].find("viewsopath")!=_serverconfig[peer->header->host].end()){
-                                        _thishostviewsopath=_serverconfig[peer->header->host]["viewsopath"];
+                                    if(sysconfigpath.serverconfig[peer->header->host].find("viewsopath")!=sysconfigpath.serverconfig[peer->header->host].end()){
+                                        threadlocalvar.hostviewsopath=sysconfigpath.serverconfig[peer->header->host]["viewsopath"];
                                 }
                            }
                         
@@ -299,9 +303,9 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                     modulemethod=peer->header->pathinfo[0];
                                 }
                                 
-                                if(methodcallback.find(modulemethod)!=methodcallback.end()){
+                                if(sysconfigpath.methodcallback.find(modulemethod)!=sysconfigpath.methodcallback.end()){
                                                 visttype=6;
-                                                std::string sitecontent=methodcallback[modulemethod](peer->getpeer());               
+                                                std::string sitecontent=sysconfigpath.methodcallback[modulemethod](peer->getpeer());               
                                                 if(sitecontent.empty()){
                                                     if(peer->vobj.as_int()==0){
                                                         peer->send(200);
@@ -313,13 +317,13 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                         if(peer->header->pathinfo.size()==1){
                                             modulemethod.append("/home");
                                         }
-                                        if(_serverconfig.find(peer->header->host)!=_serverconfig.end()){
-                                                if(_serverconfig[peer->header->host].find("controlsopath")!=_serverconfig[peer->header->host].end()){
-                                                        moduleso=_serverconfig[peer->header->host]["controlsopath"];
+                                        if(sysconfigpath.serverconfig.find(peer->header->host)!=sysconfigpath.serverconfig.end()){
+                                                if(sysconfigpath.serverconfig[peer->header->host].find("controlsopath")!=sysconfigpath.serverconfig[peer->header->host].end()){
+                                                        moduleso=sysconfigpath.serverconfig[peer->header->host]["controlsopath"];
                                                 }
                                         } 
                                         if(moduleso.empty()){
-                                            moduleso=_serverconfig["default"]["controlsopath"];
+                                            moduleso=sysconfigpath.serverconfig["default"]["controlsopath"];
                                         }
                                         if(moduleso.size()>0&&moduleso.back()!='/'){
                                             moduleso.append("/");
@@ -348,9 +352,9 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                             }else{
                                     std::string modulemethod,moduleso;  
                                     modulemethod="default"; 
-                                    if(methodcallback.find(modulemethod)!=methodcallback.end()){
+                                    if(sysconfigpath.methodcallback.find(modulemethod)!=sysconfigpath.methodcallback.end()){
                                                 visttype=6;
-                                                std::string sitecontent=methodcallback[modulemethod](peer->getpeer());    
+                                                std::string sitecontent=sysconfigpath.methodcallback[modulemethod](peer->getpeer());    
                                                 if(sitecontent.empty()){
                                                     if(peer->vobj.as_int()==0){
                                                         peer->send(200);
@@ -362,13 +366,13 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                         struct stat modso;
                                         modulemethod="default/home";
                                         
-                                        if(_serverconfig.find(peer->header->host)!=_serverconfig.end()){
-                                                if(_serverconfig[peer->header->host].find("controlsopath")!=_serverconfig[peer->header->host].end()){
-                                                        moduleso=_serverconfig[peer->header->host]["controlsopath"];
+                                        if(sysconfigpath.serverconfig.find(peer->header->host)!=sysconfigpath.serverconfig.end()){
+                                                if(sysconfigpath.serverconfig[peer->header->host].find("controlsopath")!=sysconfigpath.serverconfig[peer->header->host].end()){
+                                                        moduleso=sysconfigpath.serverconfig[peer->header->host]["controlsopath"];
                                                 }
                                         } 
                                         if(moduleso.empty()){
-                                            moduleso=_serverconfig["default"]["controlsopath"];
+                                            moduleso=sysconfigpath.serverconfig["default"]["controlsopath"];
                                         }
                                         if(moduleso.size()>0&&moduleso.back()!='/'){
                                             moduleso.append("/");
@@ -397,23 +401,23 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                    
                                     bool isshowdirectory=false;
                                     
-                                    if(_serverconfig.find(peer->header->host)!=_serverconfig.end()){
-                                        if(_serverconfig[peer->header->host].find("directorylist")!=_serverconfig[peer->header->host].end()){
-                                                 if(!_serverconfig[peer->header->host]["directorylist"].empty()){
+                                    if(sysconfigpath.serverconfig.find(peer->header->host)!=sysconfigpath.serverconfig.end()){
+                                        if(sysconfigpath.serverconfig[peer->header->host].find("directorylist")!=sysconfigpath.serverconfig[peer->header->host].end()){
+                                                 if(!sysconfigpath.serverconfig[peer->header->host]["directorylist"].empty()){
                                                         isshowdirectory=true;
                                                  }
                                         }
                                     } 
                                     if(isshowdirectory==false){
-                                         if(_serverconfig["default"].find("directorylist")!=_serverconfig["default"].end()){
-                                                 if(!_serverconfig["default"]["directorylist"].empty()){
+                                         if(sysconfigpath.serverconfig["default"].find("directorylist")!=sysconfigpath.serverconfig["default"].end()){
+                                                 if(!sysconfigpath.serverconfig["default"]["directorylist"].empty()){
                                                         isshowdirectory=true;
                                                  }
                                         }
                                     }
                                     if(isshowdirectory){
                                          visttype=4;
-                                         peer->displaydirectory(serverconfigpath);
+                                         peer->displaydirectory(sysconfigpath.configpath);
                                     }
                             } 
                             if(visttype==0){
@@ -451,4 +455,6 @@ void ThreadPool::http_websocketsrun(std::shared_ptr<clientpeer> peer) {
     {
         
     }
+}
+
 }

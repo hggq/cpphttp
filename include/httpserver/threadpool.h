@@ -1,5 +1,5 @@
-#ifndef FRAME_THREADPOOL_H
-#define FRAME_THREADPOOL_H
+#ifndef FRAME_THREADPOOLS_H
+#define FRAME_THREADPOOLS_H
 
 
 #include <cstdio>
@@ -44,6 +44,7 @@
 #include <functional>
 #include <stdexcept>
 #include "Clientpeer.h"
+// #include "threadlocalvariable.h"
 
 namespace http {
     

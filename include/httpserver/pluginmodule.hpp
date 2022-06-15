@@ -17,27 +17,20 @@
 // #include "mysqlpool.h"
 #include "Clientpeer.h"
 #include "mysqlproxyfun.h"
-#include "httpsocommonapi.h" 
+#include "httpsocommonapi.h"
+#include "threadlocalvariable.h"
 
 namespace http {
  
-typedef boost::function<void()> callback_t;
-typedef boost::function<void(std::string)> echo_callback_t;
-typedef boost::function<void(std::string&)> echo_callbackand_t;
-typedef boost::function<mysqlx::RowResult(std::string&,size_t)> mysql_callbackand_t;
-typedef boost::function<mysqlx::SqlResult(std::string&,size_t)> mysql_callbacksql_t;
-typedef boost::function<bool(std::list<std::string>&,size_t)> mysql_callbacksql_rollback;
-typedef boost::function<std::string(http::OBJ_VALUE&)> method_callback_t;
-typedef boost::function<std::string(http::clientpeer&)> www_method_call;
-typedef boost::function<boost::function<std::string(http::OBJ_VALUE&)>(std::string)> modulemethod_callback_t;
-typedef boost::function<boost::function<std::string(http::clientpeer&)>(std::string)> module_method_call;
 
-std::string siteviewpath="module/view/";
+ std::string siteviewpath="module/view/";
 std::string sitecontrolpath="module/controller/";
 std::map<std::size_t,std::vector<std::string>>  sharedmethodchache;
 std::map<std::size_t,method_callback_t>  sharedpathchache;//,controlpathchache;
 std::map<std::size_t,www_method_call>  controlpathchache;
 std::mutex loadcontrolmtx,loadviewmtx,moudulecachemethod;
+
+
 std::string httpviewempty(http::OBJ_VALUE& a){
     return "<p>--view not found--</p>";
 }
@@ -61,7 +54,10 @@ T& get_global(){
     static T instance;
     return instance;
 }
-
+threadlocalconfig& get_threadlocalvar(){
+       thread_local static threadlocalconfig instance;
+    return instance;
+}
 //class clientpeer;
 /////test/////
 thread_local modulemar bbb;
@@ -80,14 +76,7 @@ thread_local std::string _thishostviewsopath;
 thread_local std::vector<std::string> _header;
 
 
-method_callback_t loadview(std::string);
-method_callback_t loadviewnotcall(std::string);
-method_callback_t loadviewfetchnotcall(std::string);
-method_callback_t loadviewobjcall(std::string);
 
-www_method_call loadcontrol(std::string);
-www_method_call modulesendfile(std::string);
-www_method_call modulesenddata(std::string);//websocket使用
 //std::map<std::string,modulemethod_callback_t> rendercallback;
 std::map<std::string,module_method_call> rendercallback;
 
@@ -105,7 +94,7 @@ www_method_call modulesenddata(std::string name){
     return httpempty;
 }
 void echoassign(std::string name){
-    _threadclientpeer->_output.append(std::move(name));
+    getthreadlocalobj().peer->_output.append(std::move(name));
     
 }
 void send_data(std::string name);
@@ -114,14 +103,17 @@ void send_data(unsigned int statecode,std::string name);
 void send_data(unsigned int statecode,std::string &name);
 
 void echo_flush(std::string name){
-    _threadclientpeer->_output.append(std::move(name));
+    getthreadlocalobj().peer->_output.append(std::move(name));
     //now send data
 }
 http::clientpeer* getpeer(){
-    return _threadclientpeer;
+    return getthreadlocalobj().peer;
+}
+void setpeer(http::clientpeer* p){
+     getthreadlocalobj().peer=p;
 }
 void echoassignand(std::string& name){
-    _threadclientpeer->_output.append(name);
+    getthreadlocalobj().peer->_output.append(name);
      
 }
 void send_file(std::string name);
@@ -151,34 +143,34 @@ void setcookie(std::string name,std::string &value,std::string path="/",unsigned
 }
 
 http::OBJ_VALUE getsession(std::string keyname){
-    _threadclientpeer->session[keyname];
-    return _threadclientpeer->session[keyname];
+    getthreadlocalobj().peer->session[keyname];
+    return getthreadlocalobj().peer->session[keyname];
 }
 void setsession(std::string keyname,std::string value){
-    _threadclientpeer->session[keyname]=value;
+    getthreadlocalobj().peer->session[keyname]=value;
 }
 void setsession(std::string keyname,std::string &value){
-     _threadclientpeer->session[keyname]=value;
+     getthreadlocalobj().peer->session[keyname]=value;
     
 }
 void setsession(http::OBJ_VALUE &value){
     if(value.is_array()){
          for(auto iter:value.as_array()){
-         _threadclientpeer->session[value.getkeyname(iter.first)]=iter.second;
+         getthreadlocalobj().peer->session[value.getkeyname(iter.first)]=iter.second;
         }
     }else{
-        _threadclientpeer->session.push(value);
+        getthreadlocalobj().peer->session.push(value);
     }
     
 }
 std::string renderjsonfetchtosend(http::OBJ_VALUE & b){
         
-        _threadclientpeer->_output.append(b.tojson());
+        getthreadlocalobj().peer->_output.append(b.tojson());
         return "";
 }
 std::string renderjsonlocaltosend(http::OBJ_VALUE & b){
         
-        _threadclientpeer->_output.append(_threadclientpeer->vobj.tojson());
+        getthreadlocalobj().peer->_output.append(getthreadlocalobj().peer->vobj.tojson());
         return "";
 }
 method_callback_t sendjsoncall(std::string modulemethod){
@@ -341,10 +333,11 @@ www_method_call loadcontrol(std::string modulemethod){
  
         std::string path;
         int i=0;
-        if(_thishostcontrolsopath.empty()){
+        threadlocalconfig&  threadlocalvar=getthreadlocalobj();
+        if( threadlocalvar.hostcontrolsopath.empty()){
              path.append(sitecontrolpath);
         }else{
-            path.append(_thishostcontrolsopath);
+            path.append( threadlocalvar.hostcontrolsopath);
             hash.append(path);
             if(hash.back()!='/'){
                 hash.push_back('/');
@@ -424,10 +417,11 @@ www_method_call loadcontrol(std::string modulemethod){
 method_callback_t loadview(std::string modulemethod){
         std::string hash;
           std::string path;
-         if(_thishostviewsopath.empty()){
+          threadlocalconfig&  threadlocalvar=getthreadlocalobj();
+         if(threadlocalvar.hostviewsopath.empty()){
              path.append(siteviewpath);
         }else{
-            path.append(_thishostviewsopath);
+            path.append(threadlocalvar.hostviewsopath);
             hash.append(path);
              if(hash.back()!='/'){
                 hash.push_back('/');
@@ -499,14 +493,14 @@ method_callback_t loadview(std::string modulemethod){
 
 }
 method_callback_t loadviewnotcall(std::string modulemethod){
-        _threadclientpeer->_output.append(loadview(modulemethod)(_threadclientpeer->vobj));
+        getthreadlocalobj().peer->_output.append(loadview(modulemethod)(getthreadlocalobj().peer->vobj));
         return httpviewempty;
 
 }
 std::string renderviewobjfetch(http::OBJ_VALUE& b){
         if(!_outputtemp.empty()){
             if(_outputtemp.size()<30){
-                _threadclientpeer->_output.append(loadview(_outputtemp)(b));  
+                getthreadlocalobj().peer->_output.append(loadview(_outputtemp)(b));  
             }    
         }
         
@@ -529,7 +523,7 @@ std::string renderviewfetch(http::OBJ_VALUE& a){
 method_callback_t loadviewfetchnotcall(std::string modulemethod){
   
         _outputtemp.clear();
-        _outputtemp.append(loadview(std::move(modulemethod))(_threadclientpeer->vobj));
+        _outputtemp.append(loadview(std::move(modulemethod))(getthreadlocalobj().peer->vobj));
         return renderviewfetch;
 
 }
@@ -647,7 +641,7 @@ void controlmoduleclear(std::string module,std::string method){
 std::string loadmodule(std::string modulemethod){
     try {
 
-        return loadcontrol(modulemethod)(_threadclientpeer->getpeer());
+        return loadcontrol(modulemethod)(getthreadlocalobj().peer->getpeer());
     }catch (std::exception& e)  
     {  
         return e.what();
@@ -679,7 +673,7 @@ void viewshow(std::string modulemethod){
 std::string viewfetch(std::string modulemethod){
  
   try {
-      return loadviewfetchnotcall(modulemethod)(_threadclientpeer->vobj);
+      return loadviewfetchnotcall(modulemethod)(getthreadlocalobj().peer->vobj);
 
     }catch (std::exception& e)  
     {  
@@ -743,31 +737,31 @@ void echo_json(http::OBJ_VALUE &b){
    }  
 
 void echo(std::string &b){
-_threadclientpeer->_output.append(b);  
+getthreadlocalobj().peer->_output.append(b);  
      
 }
 void echo(int b){
-_threadclientpeer->_output.append(std::to_string(b));  
+getthreadlocalobj().peer->_output.append(std::to_string(b));  
      
 }
 void echo(unsigned int b){
-_threadclientpeer->_output.append(std::to_string(b));  
+getthreadlocalobj().peer->_output.append(std::to_string(b));  
 }
 void echo(long long b){
-_threadclientpeer->_output.append(std::to_string(b));  
+getthreadlocalobj().peer->_output.append(std::to_string(b));  
      
 }
 void echo(unsigned long long b){
-     _threadclientpeer->_output.append(std::to_string(b));     
+     getthreadlocalobj().peer->_output.append(std::to_string(b));     
 }
 void echo(std::string &&b){
-      _threadclientpeer->_output.append(b);
+      getthreadlocalobj().peer->_output.append(b);
 }
 void echo(http::OBJ_VALUE &b){
-     _threadclientpeer->_output.append(b.to_string());
+     getthreadlocalobj().peer->_output.append(b.to_string());
 }
 std::string& getoutput(){
-     return _threadclientpeer->_output;
+     return getthreadlocalobj().peer->_output;
 } 
 
 }

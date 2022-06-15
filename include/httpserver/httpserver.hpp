@@ -93,7 +93,8 @@ using asio::detached;
 using asio::use_awaitable;
 using asio::ip::tcp;
 namespace this_coro = asio::this_coro;
-
+using namespace http;
+namespace fs = std::filesystem;
 
 #if defined(ASIO_ENABLE_HANDLER_TRACKING)
 #define use_awaitable                                                          \
@@ -102,10 +103,10 @@ namespace this_coro = asio::this_coro;
 
 
 // std::map<std::string,SSL_CTX*> g_ctxMap;
-std::map<std::string,std::function<std::shared_ptr<websockets_api>(std::weak_ptr<clientpeer>)>> websocketmethodcallback;
-std::map<std::string,std::function<std::string(http::clientpeer &)>>  methodcallback;
-std::string serverconfigpath;
-std::map<std::string,std::map<std::string,std::string>>  _serverconfig;
+// std::map<std::string,std::function<std::shared_ptr<websockets_api>(std::weak_ptr<clientpeer>)>> websocketmethodcallback;
+// std::map<std::string,std::function<std::string(http::clientpeer &)>>  methodcallback;
+ std::string serverconfigpath;
+// std::map<std::string,std::map<std::string,std::string>>  _serverconfig;
 
 
 
@@ -199,30 +200,31 @@ void loadmysqlconfig(){
 void loadserverglobalconfig(){
  
     std::string configfile;
-    configfile=serverconfigpath;
+    serverconfig&  sysconfigpath=  getserversysconfig();
+    configfile=sysconfigpath.configpath;
     if(configfile.size()>0&&configfile.back()!='/'){
         configfile.push_back('/');
     }
     configfile.append("server.conf");
-    _serverconfig=http::loadserversconfig(configfile);
+    sysconfigpath.serverconfig=http::loadserversconfig(configfile);
  
-   http::siteviewpath=_serverconfig["default"]["viewsopath"];
-   http::sitecontrolpath=_serverconfig["default"]["controlsopath"];
-   if(_serverconfig["default"]["index"].empty()){
-        _serverconfig["default"]["index"]="index.html";
+   http::siteviewpath=sysconfigpath.serverconfig["default"]["viewsopath"];
+   http::sitecontrolpath=sysconfigpath.serverconfig["default"]["controlsopath"];
+   if(sysconfigpath.serverconfig["default"]["index"].empty()){
+        sysconfigpath.serverconfig["default"]["index"]="index.html";
    }
-   if(_serverconfig["default"]["usehtmlcache"].empty()){
-        _siteusehtmlchache=false;
+   if(sysconfigpath.serverconfig["default"]["usehtmlcache"].empty()){
+        sysconfigpath.siteusehtmlchache=false;
    }else{
-       _siteusehtmlchache=true;
+       sysconfigpath.siteusehtmlchache=true;
    }
-    if(_serverconfig["default"]["usehtmlcachetime"].empty()){
-        _siteusehtmlchachetime=0;
+    if(sysconfigpath.serverconfig["default"]["usehtmlcachetime"].empty()){
+        sysconfigpath.siteusehtmlchachetime=0;
    }else{
-       _siteusehtmlchachetime=0;
-       for(int i=0;i<_serverconfig["default"]["usehtmlcachetime"].size();i++){
-                     if(_serverconfig["default"]["usehtmlcachetime"][i]>0x2F&&_serverconfig["default"]["usehtmlcachetime"][i]<0x3A){
-                         _siteusehtmlchachetime=_siteusehtmlchachetime*10+(_serverconfig["default"]["usehtmlcachetime"][i]-'0');
+       sysconfigpath.siteusehtmlchachetime=0;
+       for(int i=0;i<sysconfigpath.serverconfig["default"]["usehtmlcachetime"].size();i++){
+                     if(sysconfigpath.serverconfig["default"]["usehtmlcachetime"][i]>0x2F&&sysconfigpath.serverconfig["default"]["usehtmlcachetime"][i]<0x3A){
+                         sysconfigpath.siteusehtmlchachetime=sysconfigpath.siteusehtmlchachetime*10+(sysconfigpath.serverconfig["default"]["usehtmlcachetime"][i]-'0');
                      }   
        }
        
@@ -230,411 +232,7 @@ void loadserverglobalconfig(){
  
 }
 //////////////////////////////////////////
-  void ThreadPool::printthreads(){
-               std::unique_lock<std::mutex> lck(livemtx);           
-              for(auto iter=threadlist.begin();iter!=threadlist.end();iter++){
-                        std::cout<<iter->first<<" isbusy:"<<iter->second.busy<<" ip:"<<(iter->second.ip)<<" url:"<<iter->second.url<<std::endl;
-              }
-        }
 
-unsigned int ThreadPool::getpoolthreadnum() { return threadlist.size(); }
-
-bool ThreadPool::live_end(std::thread::id id) {
-
-  auto iter = threadlist.find(id);
-  if (iter != threadlist.end()) {
-    std::unique_lock<std::mutex> lck(livemtx);
-    unsigned long long temp = time((time_t *)NULL);
-    threadlist[id].end = temp;
-    return true;
-  } else {
-    return false;
-  }
-}
-bool ThreadPool::live_add(std::thread::id id) {
-  unsigned long long temp = time((time_t *)NULL);
-  std::unique_lock<std::mutex> lck(livemtx);
-  threadlist[id].begin = temp;
-  return true;
-}
-
-inline void ThreadPool::threadloop(int index) {
-  std::thread::id thread_id = std::this_thread::get_id();
-  while (!this->stop) {
-
- 
-    std::unique_lock<std::mutex> lock(this->queue_mutex);
-    this->condition.wait(lock, [this, thread_id] {
-      return this->stop || !this->clienttasks.empty() ||
-             this->threadlist[thread_id].stop;
-    });
-    if (this->stop && this->clienttasks.empty())
-      break;
-
-    if (this->threadlist[thread_id].stop) {
-      break;
-    }
-
-    if (this->clienttasks.empty())
-      continue;
-
-    auto task = std::move(this->clienttasks.front());
-    this->clienttasks.pop();
-    lock.unlock();
-
-    live_add(thread_id);
-    livethreadcount += 1;
-    this->threadlist[thread_id].busy = true;
-
-    if(task->httptype==0){
-      this->http_clientrun(task);
-    }else{
-       this->http_websocketsrun(task);
-    }
-    
-    livethreadcount -= 1;
-    this->threadlist[thread_id].busy = false;
-    live_end(thread_id);
-     
-  }
-
-  this->threadlist[thread_id].close = true;
-}
-bool ThreadPool::fixthread() {
-
-  unsigned int tempcount = threadlist.size();
-  if(tempcount<128){
-    return false;
-  }
-  if (tempcount < (mixthreads.load() + 10)) {
-    return false;
-  }
-
-   
-  {
-
-    std::unique_lock<std::mutex> lock(queue_mutex);
-    for (auto &iter : threadlist) {
-      if (iter.second.busy == false) {
-        iter.second.stop = true;
-        tempcount--;
-      }
-      if (tempcount <= mixthreads.load()) {
-        break;
-      }
-    }
-    lock.unlock();
-  }
-
-  condition.notify_all();
-
-  std::unique_lock<std::mutex> lock(queue_mutex);
-  for (auto iter = threadlist.begin(); iter != threadlist.end();) {
-    if (iter->second.close) {
-      if (iter->second.thread.joinable()) {
-        iter->second.thread.join();
-        threadlist.erase(iter++);
-        pooltotalnum -= 1;
- 
-      } else {
-        iter++;
-      }
-    } else {
-      iter++;
-    }
-  }
-  lock.unlock();
-
-  return true;
-}
-
-bool ThreadPool::addthread(size_t threads) {
-
-  if (threadlist.size() > 2048) {
-    return false;
-  }
- 
-  for (size_t i = 0; i < threads; ++i) {
-    struct threadinfo_t tinfo;
-    tinfo.thread = std::thread(
-        std::bind(&ThreadPool::threadloop, this, pooltotalnum.load()));
-    // tinfo.thread=std::thread(&ThreadPool::threadloop,this,pooltotalnum.load());
-    std::thread::id temp = tinfo.thread.get_id();
-    tinfo.id = temp;
-    threadlist[tinfo.id] = std::move(tinfo);
-    pooltotalnum++;
-  }
-  return true;
-}
-
-// the constructor just launches some amount of workers
-inline ThreadPool::ThreadPool(size_t threads) : stop(false) {
-  pooltotalnum.store(0);
-  livethreadcount.store(0);
-  mixthreads.store(32);
-  for (size_t i = 0; i < threads; ++i) {
-   
-    struct threadinfo_t tinfo;
-    tinfo.thread = std::thread(
-        std::bind(&ThreadPool::threadloop, this, pooltotalnum.load()));
-    tinfo.id = tinfo.thread.get_id();
-    threadlist[tinfo.id] = std::move(tinfo);
-    pooltotalnum++;
-
-  }
-}
-
-// the destructor joins all threads
-inline ThreadPool::~ThreadPool() {
-  {
-    std::unique_lock<std::mutex> lock(queue_mutex);
-    stop = true;
-  }
-  condition.notify_all();
-  
-  for (auto &worker : threadlist) {
-    if (worker.second.thread.joinable()) {
-      worker.second.thread.join();
-    }
-  }
-   
-}
-
-bool ThreadPool::addclient(std::shared_ptr<clientpeer> peer) {
-  if (!stop) {
-    std::unique_lock<std::mutex> lock(queue_mutex);
-    clienttasks.emplace(peer);
-  }
-
-  condition.notify_one();
-  return false;
-}
-
-void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
- try
- { 
-  http::_threadclientpeer=peer.get();
-  
-  std::thread::id thread_id=std::this_thread::get_id();
-   clientapi& pnn =clientapi::get();
-  
-   if(!peer->header->getfinish()){
-        peer->send(400,"Request bad");
-        return;
-    }
-   unsigned int offsetnum=0;
-    for(;offsetnum<peer->header->host.size();offsetnum++){
-          threadlist[thread_id].url[offsetnum]=peer->header->host[offsetnum];
-          if(offsetnum>60){
-              break;
-          }
-    }
-    for(int j=0;j<peer->header->urlpath.size();j++){
-        threadlist[thread_id].url[offsetnum]=peer->header->urlpath[j];
-        offsetnum++;
-        if(offsetnum>63){
-            break;
-        }
-    }
-    threadlist[thread_id].url[offsetnum]=0x00;
-    
-
-    { 
-        unsigned int offsetnum=peer->remote_ip.size();
-        if(offsetnum<46){
-            memcpy(threadlist[thread_id].ip, peer->remote_ip.data(),offsetnum);
-            threadlist[thread_id].ip[offsetnum]=0x00;
-        }
-    }
-   std::cout<<"--------------------------------------------"<<std::endl;
-   std::cout<<"remote_ip:"<<peer->remote_ip<<std::endl;
-   std::cout<<"remote_port:"<<peer->remote_port<<std::endl;
-   std::cout<<"local_ip:"<<peer->local_ip<<std::endl;
-   std::cout<<"local_port:"<<peer->local_port<<std::endl;
-   std::cout<<"--------------------------------------------"<<std::endl;
-    peer->getfileinfo();
-   unsigned char visttype=0;
-                         
-                        if(peer->pathtype==1){
-                             
-                            peer->sendfileto();
-                            visttype=1;
-                        }else{
-                            if(_serverconfig.find(peer->header->host)!=_serverconfig.end()){
-                                if(_serverconfig[peer->header->host].find("controlsopath")!=_serverconfig[peer->header->host].end()){
-                                        _thishostcontrolsopath=_serverconfig[peer->header->host]["controlsopath"];
-                                }
-                                    if(_serverconfig[peer->header->host].find("viewsopath")!=_serverconfig[peer->header->host].end()){
-                                        _thishostviewsopath=_serverconfig[peer->header->host]["viewsopath"];
-                                }
-                           }
-                        
-                            if(peer->header->pathinfo.size()>0){
-                                struct stat modso;
-                                std::string modulemethod,moduleso;
-                                if(peer->header->pathinfo.size()>1){
-                                    if(peer->header->pathinfo[1][0]=='h'&&strcasecmp(peer->header->pathinfo[1].c_str(),"home.html")==0){
-                                        modulemethod=peer->header->pathinfo[0]+"/home";
-                                    }else{
-                                        modulemethod=peer->header->pathinfo[0]+"/"+peer->header->pathinfo[1];
-                                    }
-                                }else{
-                                    modulemethod=peer->header->pathinfo[0];
-                                }
-                                
-                                if(methodcallback.find(modulemethod)!=methodcallback.end()){
-                                                visttype=6;
-                                                std::string sitecontent=methodcallback[modulemethod](peer->getpeer());               
-                                                if(sitecontent.empty()){
-                                                    if(peer->vobj.as_int()==0){
-                                                        peer->send(200);
-                                                    }
-                                                }else{
-                                                    peer->send(200,sitecontent);
-                                                }
-                                }else{
-                                        if(peer->header->pathinfo.size()==1){
-                                            modulemethod.append("/home");
-                                        }
-                                        if(_serverconfig.find(peer->header->host)!=_serverconfig.end()){
-                                                if(_serverconfig[peer->header->host].find("controlsopath")!=_serverconfig[peer->header->host].end()){
-                                                        moduleso=_serverconfig[peer->header->host]["controlsopath"];
-                                                }
-                                        } 
-                                        if(moduleso.empty()){
-                                            moduleso=_serverconfig["default"]["controlsopath"];
-                                        }
-                                        if(moduleso.size()>0&&moduleso.back()!='/'){
-                                            moduleso.append("/");
-                                        }
-                                        moduleso=moduleso+peer->header->pathinfo[0]+".so";
-                                        if (stat(moduleso.c_str(),&modso)==0){
-                                                visttype=3;
-                                                auto sitemodloadis=http::loadcontrol(modulemethod);
-                                                std::string sitecontent=sitemodloadis(peer->getpeer());
-                                                    
-                                                if(sitecontent.empty()){
-                                                    if(peer->vobj.as_int()==0){
-                                                      peer->send(200);
-                                                    }
-                                                }else{
-                                                    peer->send(200,sitecontent);
-                                                }
-                                                            
-                                        }else if(peer->pathtype==3){
-                                            peer->sendfileto();
-                                            visttype=5;
-                                        }
-                                }
-                                
-
-                            }else{
-                                    std::string modulemethod,moduleso;  
-                                    modulemethod="default"; 
-                                    if(methodcallback.find(modulemethod)!=methodcallback.end()){
-                                                visttype=6;
-                                                std::string sitecontent=methodcallback[modulemethod](peer->getpeer());    
-                                                if(sitecontent.empty()){
-                                                    if(peer->vobj.as_int()==0){
-                                                        peer->send(200);
-                                                    }
-                                                }else{
-                                                    peer->send(200,sitecontent);
-                                                }
-                                }else{
-                                        struct stat modso;
-                                        modulemethod="default/home";
-                                        
-                                        if(_serverconfig.find(peer->header->host)!=_serverconfig.end()){
-                                                if(_serverconfig[peer->header->host].find("controlsopath")!=_serverconfig[peer->header->host].end()){
-                                                        moduleso=_serverconfig[peer->header->host]["controlsopath"];
-                                                }
-                                        } 
-                                        if(moduleso.empty()){
-                                            moduleso=_serverconfig["default"]["controlsopath"];
-                                        }
-                                        if(moduleso.size()>0&&moduleso.back()!='/'){
-                                            moduleso.append("/");
-                                        }
-                                        moduleso=moduleso+"default.so";
-                                        if (stat(moduleso.c_str(),&modso)==0){
-                                                visttype=2;
-                                                auto sitemodloadis=http::loadcontrol(modulemethod);
-                                                std::string sitecontent=sitemodloadis(peer->getpeer());    
-                                                if(sitecontent.empty()){
-                                                    if(peer->vobj.as_int()==0){
-                                                            peer->send(200);
-                                                    }
-                                                }else{
-                                                    peer->send(200,sitecontent);
-                                                }
-                                                            
-                                        }
-                                }
-
-                            }    
-    
-                        }
-                        if(visttype==0){
-                             if(peer->pathtype==2){
-                                   
-                                    bool isshowdirectory=false;
-                                    
-                                    if(_serverconfig.find(peer->header->host)!=_serverconfig.end()){
-                                        if(_serverconfig[peer->header->host].find("directorylist")!=_serverconfig[peer->header->host].end()){
-                                                 if(!_serverconfig[peer->header->host]["directorylist"].empty()){
-                                                        isshowdirectory=true;
-                                                 }
-                                        }
-                                    } 
-                                    if(isshowdirectory==false){
-                                         if(_serverconfig["default"].find("directorylist")!=_serverconfig["default"].end()){
-                                                 if(!_serverconfig["default"]["directorylist"].empty()){
-                                                        isshowdirectory=true;
-                                                 }
-                                        }
-                                    }
-                                    if(isshowdirectory){
-                                         visttype=4;
-                                         peer->displaydirectory(serverconfigpath);
-                                    }
-                            } 
-                            if(visttype==0){
-                                
-                                peer->send(404,peer->header->urlpath);
-                                visttype=7;
-                            }
-                        }
-                         peer->_output.clear(); 
-                         peer->vobj.clear(); 
-                         if(peer->header->state.keeplive&&peer->keeplive){
-                                peer->keeplivemax-=1;
-                                peer->header->headerfinish=0;
-                                peer->header->headerstep=0;
-                                
-                            }
-      peer->looprunpromise.set_value(1);
-   }catch (std::exception& e)
-    {
-           peer->looprunpromise.set_exception(std::current_exception());
-    }              
-}
-
-void ThreadPool::http_websocketsrun(std::shared_ptr<clientpeer> peer) {
-  try
-  { 
-      if(peer->ws->isfile){
-          peer->websocket->onfiles(peer->ws->filename);
-      }else{
-        peer->websocket->onmessage(peer->ws->indata);
-      }
-      peer->ws->filename.clear();
-      peer->ws->indata.clear();
-    }catch (std::exception& e)
-    {
-        
-    }
-}
 
 class httpserver {
 public:
@@ -729,6 +327,7 @@ public:
     peer->getlocalip();
     peer->getlocalport();
     // peer->globalconfig=&_serverconfig;
+    serverconfig&  sysconfigpath=  getserversysconfig();
     for (;;) {
         peer->header->clear();
         for(;;){
@@ -767,11 +366,11 @@ public:
                   if(peer->header->pathinfo.size()==0){
                        co_return;
                   }
-                  auto wsiter= websocketmethodcallback.find(peer->header->pathinfo[0]);   
-                  if(wsiter==websocketmethodcallback.end()){
+                  auto wsiter= sysconfigpath.websocketmethodcallback.find(peer->header->pathinfo[0]);   
+                  if(wsiter==sysconfigpath.websocketmethodcallback.end()){
                       co_return;
                   }
-                  auto myclientwsplugin=websocketmethodcallback[peer->header->pathinfo[0]];
+                  auto myclientwsplugin=sysconfigpath.websocketmethodcallback[peer->header->pathinfo[0]];
                    peer->websocket=myclientwsplugin(peer);
                    peer->websocket->onopen();
                    if(peer->websocket->timeloop_num>0){
@@ -887,11 +486,11 @@ public:
       perror("acceptor listen error");
       exit(1);
     }
-
+    serverconfig&  sysconfigpath=  getserversysconfig();
     for (;;) {
       //clientpeer peer;
       std::shared_ptr<clientpeer> clientp= std::make_shared<clientpeer>();
-      clientp->globalconfig=&_serverconfig;
+      clientp->globalconfig=&sysconfigpath.serverconfig;
       if(total_count>0xFFFFFF00){
           total_count=0;
       }
@@ -931,11 +530,11 @@ public:
                     context_.use_tmp_dh_file(filepath.c_str());
                     SSL_CTX_set_tlsext_servername_callback(context_.native_handle(), serverNameCallback);
     asio::error_code ec_error;
-
+    serverconfig&  sysconfigpath=  getserversysconfig();
     for (;;) {
  
       std::shared_ptr<clientpeer> clientp= std::make_shared<clientpeer>();
-      clientp->globalconfig=&_serverconfig;
+      clientp->globalconfig=&sysconfigpath.serverconfig;
       if(total_count>0xFFFFFF00){
           total_count=0;
       }
@@ -969,22 +568,59 @@ public:
 
     this->io_context.run();
   }
+
   void httpwatch(){
+      serverconfig&  sysconfigpath=  getserversysconfig();
+      
      if(serverconfigpath.empty()){
-       serverconfigpath="config/";
+
+      std::string currentpath="/etc/chttp";
+       fs::path cpath=currentpath; 
+      if (fs::is_directory(cpath))
+      {
+          currentpath=currentpath+"/server.conf";
+          cpath=currentpath;
+          if(fs::is_regular_file(cpath))
+          {
+                serverconfigpath="/etc/chttp/";
+          }
+      }
+      if(serverconfigpath.empty()){
+           cpath=fs::current_path();
+           currentpath=cpath.string();
+           currentpath=currentpath+"/config";
+          cpath=currentpath; 
+          if (fs::is_directory(cpath))
+          {
+              serverconfigpath=currentpath+"/"; 
+              currentpath=currentpath+"/server.conf";
+              cpath=currentpath;
+              if(fs::is_regular_file(cpath))
+              {
+                   
+              }else{
+                serverconfigpath.clear();
+              }
+          }
+      }
+     
     }
-         if(serverconfigpath.back()!='/'){
+    
+    if(serverconfigpath.size()>0&&serverconfigpath.back()!='/'){
        serverconfigpath.push_back('/');
     }
+    sysconfigpath.configpath=serverconfigpath;
+
       bool reloadmysql=true; 
     bool reloadserverconfig=true; 
     bool alonehttpserver=true; 
      unsigned int  updatetimetemp=0;
-     _initwebsocketmethodregto(websocketmethodcallback);
-    _inithttpmethodregto(methodcallback);
-    ctxmar* ctxptr = ctxmar::instance();
-    ctxptr->setconfigpath(serverconfigpath);
 
+    _initwebsocketmethodregto(sysconfigpath.websocketmethodcallback);
+    _inithttpmethodregto(sysconfigpath.methodcallback);
+
+    ctxmar* ctxptr = ctxmar::instance();
+     ctxptr->setconfigpath(sysconfigpath.configpath);
      clientapi* pn =clientapi::instance();
  
              pn->api_loadview=loadview;
@@ -1083,7 +719,7 @@ public:
 
       std::this_thread::sleep_for(std::chrono::seconds(2)); 
       std::thread http(std::bind(&httpserver::http_run, this));
-      std::thread http2(std::bind(&httpserver::https_run, this));
+      std::thread https(std::bind(&httpserver::https_run, this));
  
 
        for (int i = 0; i < 1; ++i) {
@@ -1098,8 +734,8 @@ public:
       if (http.joinable()) {
         http.join();
       }
-      if (http2.joinable()) {
-        http2.join();
+      if (https.joinable()) {
+        https.join();
       }
 
       for (int i = 0; i < 4; ++i) {
@@ -1112,7 +748,9 @@ public:
           websocketthreads[i].join();
         }
       }
- 
+      if (httpwatch.joinable()) {
+        httpwatch.join();
+      }
       io_context.run();
     } catch (std::exception &e) {
       std::printf("Exception: %s\n", e.what());
