@@ -10,7 +10,6 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <list>
@@ -38,23 +37,14 @@
 #endif
 
 #include <array>
-#include <cstdio>
-#include <iostream>
-#include <memory>
-#include <cstdio> 
 #include <iostream>
 #include <ctime>
 #include <map>
-#include <string>
 #include <sys/time.h>
-#include <atomic>
-#include <queue>
-#include <memory>
 #include <map>
 #include <thread>
 #include <mutex>
 #include <filesystem>
-#include <condition_variable>
 #include <future>
 #include <functional>
 #include <stdexcept>
@@ -72,9 +62,7 @@
 #include "urlcode.h"
 #include "request.h"
 #include "httpparse.h"
-//#include "httpparse.hpp"
 #include "pluginmodule.hpp"
-//#include "wwwserver.hpp"
 #include "loadconfig.hpp"
 #include "Clientpeer.h"
 
@@ -108,10 +96,8 @@ namespace fs = std::filesystem;
  std::string serverconfigpath;
 // std::map<std::string,std::map<std::string,std::string>>  _serverconfig;
 
-
-
-bool _siteusehtmlchache;
-unsigned int _siteusehtmlchachetime;
+// bool _siteusehtmlchache;
+// unsigned int _siteusehtmlchachetime;
 
 
   std::string get_password(){
@@ -722,7 +708,7 @@ public:
          buf[3]=pidex.c[2];
          buf[4]=pidex.c[3];
 
-        std::this_thread::sleep_for(std::chrono::seconds(4));  
+        std::this_thread::sleep_for(std::chrono::seconds(5));  
         
         if(alonehttpserver){
             try
@@ -838,7 +824,6 @@ public:
   //log
   std::list<std::string> loglist;
   std::mutex log_mutex;
-  std::condition_variable log_condition;
   //log end
 
   ThreadPool clientrunpool{32};
