@@ -93,16 +93,15 @@ namespace http {
                  unsigned char error; 
             };
     enum HEAD_METHOD{
-    UNKNOW,    
-    GET,
-    POST,
-    OPTIONS,
-    HEAD,
-    PUT,
-    DELETE,
-    TRACE,
-    CONNECT,
-    
+        UNKNOW,    
+        GET,
+        POST,
+        OPTIONS,
+        HEAD,
+        PUT,
+        DELETE,
+        TRACE,
+        CONNECT,
     };
     class httpparse{
         public:
@@ -114,7 +113,7 @@ namespace http {
             void methodprocess();
             void callposttype();
             void getcontenttype();
-             void getrange();
+            void getrange();
             void readheaderline(const unsigned char * buffer,unsigned int buffersize);
             void getaccept();
             void getacceptlanguage();
@@ -128,22 +127,22 @@ namespace http {
             void getcookie();
             void getheaderhost();
             void readboundaryline(const unsigned char * buffer,unsigned int buffersize);
-             void readformfilename(const unsigned char * buffer,unsigned int buffersize);
+            void readformfilename(const unsigned char * buffer,unsigned int buffersize);
             void checkformfilecontentbegin(const unsigned char * buffer,unsigned int buffersize);
             void readformfielditem(const unsigned char * buffer,unsigned int buffersize);
-             void procssformfile();
+            void procssformfile();
             void readformfilecotent(const unsigned char * buffer,unsigned int buffersize);
             void readmultipartformdata(const unsigned char * buffer,unsigned int buffersize);
             void readformjson(const unsigned char * buffer,unsigned int buffersize);
-             void readformurlencoded(const unsigned char * buffer,unsigned int buffersize);
+            void readformurlencoded(const unsigned char * buffer,unsigned int buffersize);
           
             void readformxml(const unsigned char * buffer,unsigned int buffersize);
  
             void process(const unsigned char * buffer,unsigned int buffersize);
-          bool getfinish();
-         void finishdata();
-        void display();
-        void clear();
+            bool getfinish();
+            void finishdata();
+            void display();
+            void clear();
         public:
             struct headstate_t state;
             struct websocket_t websocket;

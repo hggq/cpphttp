@@ -5,7 +5,6 @@
 #include <set>
 #include <string_view>
 #include <thread>
-//#include "http.hpp"
 #include "request.h"
 
 #include "threadlocalconfig.h"
@@ -14,7 +13,7 @@
 namespace http {
 
     threadlocalconfig& getthreadlocalobj(){
-               thread_local static threadlocalconfig instance;
+        thread_local static threadlocalconfig instance;
     return instance;
     }
     serverconfig& getserversysconfig(){

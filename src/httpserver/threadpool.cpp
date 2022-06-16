@@ -49,7 +49,7 @@
 namespace http {
 
    void ThreadPool::printthreads(){
-               std::unique_lock<std::mutex> lck(livemtx);           
+          std::unique_lock<std::mutex> lck(livemtx);           
               for(auto iter=threadlist.begin();iter!=threadlist.end();iter++){
                         std::cout<<iter->first<<" isbusy:"<<iter->second.busy<<" ip:"<<(iter->second.ip)<<" url:"<<iter->second.url<<std::endl;
               }
@@ -80,7 +80,6 @@ bool ThreadPool::live_add(std::thread::id id) {
   std::thread::id thread_id = std::this_thread::get_id();
   while (!this->stop) {
 
- 
     std::unique_lock<std::mutex> lock(this->queue_mutex);
     this->condition.wait(lock, [this, thread_id] {
       return this->stop || !this->clienttasks.empty() ||
@@ -232,8 +231,6 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
  try
  { 
   //http::_threadclientpeer=peer.get();
-  
-  
   std::thread::id thread_id=std::this_thread::get_id();
   serverconfig&  sysconfigpath=getserversysconfig();
   threadlocalconfig&  threadlocalvar=getthreadlocalobj();
@@ -273,168 +270,167 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
    std::cout<<"local_ip:"<<peer->local_ip<<std::endl;
    std::cout<<"local_port:"<<peer->local_port<<std::endl;
    std::cout<<"--------------------------------------------"<<std::endl;
-    peer->getfileinfo();
+   peer->getfileinfo();
    unsigned char visttype=0;
                          
-                        if(peer->pathtype==1){
-                             
-                            peer->sendfileto();
-                            visttype=1;
+        if(peer->pathtype==1){
+            peer->sendfileto();
+            visttype=1;
+        }else{
+            if(sysconfigpath.serverconfig.find(peer->header->host)!=sysconfigpath.serverconfig.end()){
+                if(sysconfigpath.serverconfig[peer->header->host].find("controlsopath")!=sysconfigpath.serverconfig[peer->header->host].end()){
+                        threadlocalvar.hostcontrolsopath=sysconfigpath.serverconfig[peer->header->host]["controlsopath"];
+                }
+                    if(sysconfigpath.serverconfig[peer->header->host].find("viewsopath")!=sysconfigpath.serverconfig[peer->header->host].end()){
+                        threadlocalvar.hostviewsopath=sysconfigpath.serverconfig[peer->header->host]["viewsopath"];
+                }
+            }
+        
+            if(peer->header->pathinfo.size()>0){
+                struct stat modso;
+                std::string modulemethod,moduleso;
+                if(peer->header->pathinfo.size()>1){
+                    if(peer->header->pathinfo[1][0]=='h'&&strcasecmp(peer->header->pathinfo[1].c_str(),"home.html")==0){
+                        modulemethod=peer->header->pathinfo[0]+"/home";
+                    }else{
+                        modulemethod=peer->header->pathinfo[0]+"/"+peer->header->pathinfo[1];
+                    }
+                }else{
+                    modulemethod=peer->header->pathinfo[0];
+                }
+                
+                if(sysconfigpath.methodcallback.find(modulemethod)!=sysconfigpath.methodcallback.end()){
+                        visttype=6;
+                        std::string sitecontent=sysconfigpath.methodcallback[modulemethod](peer->getpeer());               
+                        if(sitecontent.empty()){
+                            if(peer->vobj.as_int()==0){
+                                peer->send(200);
+                            }
                         }else{
-                            if(sysconfigpath.serverconfig.find(peer->header->host)!=sysconfigpath.serverconfig.end()){
+                            peer->send(200,sitecontent);
+                        }
+                }else{
+                        if(peer->header->pathinfo.size()==1){
+                            modulemethod.append("/home");
+                        }
+                        if(sysconfigpath.serverconfig.find(peer->header->host)!=sysconfigpath.serverconfig.end()){
                                 if(sysconfigpath.serverconfig[peer->header->host].find("controlsopath")!=sysconfigpath.serverconfig[peer->header->host].end()){
-                                        threadlocalvar.hostcontrolsopath=sysconfigpath.serverconfig[peer->header->host]["controlsopath"];
+                                        moduleso=sysconfigpath.serverconfig[peer->header->host]["controlsopath"];
                                 }
-                                    if(sysconfigpath.serverconfig[peer->header->host].find("viewsopath")!=sysconfigpath.serverconfig[peer->header->host].end()){
-                                        threadlocalvar.hostviewsopath=sysconfigpath.serverconfig[peer->header->host]["viewsopath"];
-                                }
-                           }
-                        
-                            if(peer->header->pathinfo.size()>0){
-                                struct stat modso;
-                                std::string modulemethod,moduleso;
-                                if(peer->header->pathinfo.size()>1){
-                                    if(peer->header->pathinfo[1][0]=='h'&&strcasecmp(peer->header->pathinfo[1].c_str(),"home.html")==0){
-                                        modulemethod=peer->header->pathinfo[0]+"/home";
-                                    }else{
-                                        modulemethod=peer->header->pathinfo[0]+"/"+peer->header->pathinfo[1];
-                                    }
-                                }else{
-                                    modulemethod=peer->header->pathinfo[0];
-                                }
-                                
-                                if(sysconfigpath.methodcallback.find(modulemethod)!=sysconfigpath.methodcallback.end()){
-                                                visttype=6;
-                                                std::string sitecontent=sysconfigpath.methodcallback[modulemethod](peer->getpeer());               
-                                                if(sitecontent.empty()){
-                                                    if(peer->vobj.as_int()==0){
-                                                        peer->send(200);
-                                                    }
-                                                }else{
-                                                    peer->send(200,sitecontent);
-                                                }
-                                }else{
-                                        if(peer->header->pathinfo.size()==1){
-                                            modulemethod.append("/home");
-                                        }
-                                        if(sysconfigpath.serverconfig.find(peer->header->host)!=sysconfigpath.serverconfig.end()){
-                                                if(sysconfigpath.serverconfig[peer->header->host].find("controlsopath")!=sysconfigpath.serverconfig[peer->header->host].end()){
-                                                        moduleso=sysconfigpath.serverconfig[peer->header->host]["controlsopath"];
-                                                }
-                                        } 
-                                        if(moduleso.empty()){
-                                            moduleso=sysconfigpath.serverconfig["default"]["controlsopath"];
-                                            threadlocalvar.hostcontrolsopath=moduleso;
-                                        }
-                                        if(moduleso.size()>0&&moduleso.back()!='/'){
-                                            moduleso.append("/");
-                                        }
-                                        moduleso=moduleso+peer->header->pathinfo[0]+".so";
-                                        if (stat(moduleso.c_str(),&modso)==0){
-                                                visttype=3;
-                                                auto sitemodloadis=http::loadcontrol(modulemethod);
-                                                std::string sitecontent=sitemodloadis(peer->getpeer());
-                                                    
-                                                if(sitecontent.empty()){
-                                                    if(peer->vobj.as_int()==0){
-                                                      peer->send(200);
-                                                    }
-                                                }else{
-                                                    peer->send(200,sitecontent);
-                                                }
-                                                            
-                                        }else if(peer->pathtype==3){
-                                            peer->sendfileto();
-                                            visttype=5;
-                                        }
-                                }
-                                
-
-                            }else{
-                                    std::string modulemethod,moduleso;  
-                                    modulemethod="default"; 
-                                    if(sysconfigpath.methodcallback.find(modulemethod)!=sysconfigpath.methodcallback.end()){
-                                                visttype=6;
-                                                std::string sitecontent=sysconfigpath.methodcallback[modulemethod](peer->getpeer());    
-                                                if(sitecontent.empty()){
-                                                    if(peer->vobj.as_int()==0){
-                                                        peer->send(200);
-                                                    }
-                                                }else{
-                                                    peer->send(200,sitecontent);
-                                                }
-                                }else{
-                                        struct stat modso;
-                                        modulemethod="default/home";
-                                        
-                                        if(sysconfigpath.serverconfig.find(peer->header->host)!=sysconfigpath.serverconfig.end()){
-                                                if(sysconfigpath.serverconfig[peer->header->host].find("controlsopath")!=sysconfigpath.serverconfig[peer->header->host].end()){
-                                                        moduleso=sysconfigpath.serverconfig[peer->header->host]["controlsopath"];
-                                                }
-                                        } 
-                                        if(moduleso.empty()){
-                                            moduleso=sysconfigpath.serverconfig["default"]["controlsopath"];
-                                        }
-                                        if(moduleso.size()>0&&moduleso.back()!='/'){
-                                            moduleso.append("/");
-                                        }
-                                        moduleso=moduleso+"default.so";
-                                        if (stat(moduleso.c_str(),&modso)==0){
-                                                visttype=2;
-                                                auto sitemodloadis=http::loadcontrol(modulemethod);
-                                                std::string sitecontent=sitemodloadis(peer->getpeer());    
-                                                if(sitecontent.empty()){
-                                                    if(peer->vobj.as_int()==0){
-                                                            peer->send(200);
-                                                    }
-                                                }else{
-                                                    peer->send(200,sitecontent);
-                                                }
-                                                            
-                                        }
-                                }
-
-                            }    
-    
+                        } 
+                        if(moduleso.empty()){
+                            moduleso=sysconfigpath.serverconfig["default"]["controlsopath"];
+                            threadlocalvar.hostcontrolsopath=moduleso;
                         }
-                        if(visttype==0){
-                             if(peer->pathtype==2){
-                                   
-                                    bool isshowdirectory=false;
+                        if(moduleso.size()>0&&moduleso.back()!='/'){
+                            moduleso.append("/");
+                        }
+                        moduleso=moduleso+peer->header->pathinfo[0]+".so";
+                        if (stat(moduleso.c_str(),&modso)==0){
+                                visttype=3;
+                                auto sitemodloadis=http::loadcontrol(modulemethod);
+                                std::string sitecontent=sitemodloadis(peer->getpeer());
                                     
-                                    if(sysconfigpath.serverconfig.find(peer->header->host)!=sysconfigpath.serverconfig.end()){
-                                        if(sysconfigpath.serverconfig[peer->header->host].find("directorylist")!=sysconfigpath.serverconfig[peer->header->host].end()){
-                                                 if(!sysconfigpath.serverconfig[peer->header->host]["directorylist"].empty()){
-                                                        isshowdirectory=true;
-                                                 }
-                                        }
-                                    } 
-                                    if(isshowdirectory==false){
-                                         if(sysconfigpath.serverconfig["default"].find("directorylist")!=sysconfigpath.serverconfig["default"].end()){
-                                                 if(!sysconfigpath.serverconfig["default"]["directorylist"].empty()){
-                                                        isshowdirectory=true;
-                                                 }
-                                        }
+                                if(sitecontent.empty()){
+                                    if(peer->vobj.as_int()==0){
+                                      peer->send(200);
                                     }
-                                    if(isshowdirectory){
-                                         visttype=4;
-                                         peer->displaydirectory(sysconfigpath.configpath);
-                                    }
-                            } 
-                            if(visttype==0){
-                                
-                                peer->send(404,peer->header->urlpath);
-                                visttype=7;
-                            }
+                                }else{
+                                    peer->send(200,sitecontent);
+                                }
+                                            
+                        }else if(peer->pathtype==3){
+                            peer->sendfileto();
+                            visttype=5;
                         }
-                         peer->_output.clear(); 
-                         peer->vobj.clear(); 
-                         if(peer->header->state.keeplive&&peer->keeplive){
-                                peer->keeplivemax-=1;
-                                peer->header->headerfinish=0;
-                                peer->header->headerstep=0;
-                                
+                }
+                
+
+            }else{
+                    std::string modulemethod,moduleso;  
+                    modulemethod="default"; 
+                    if(sysconfigpath.methodcallback.find(modulemethod)!=sysconfigpath.methodcallback.end()){
+                        visttype=6;
+                        std::string sitecontent=sysconfigpath.methodcallback[modulemethod](peer->getpeer());    
+                        if(sitecontent.empty()){
+                            if(peer->vobj.as_int()==0){
+                                peer->send(200);
                             }
+                        }else{
+                            peer->send(200,sitecontent);
+                        }
+                    }else{
+                        struct stat modso;
+                        modulemethod="default/home";
+                        
+                        if(sysconfigpath.serverconfig.find(peer->header->host)!=sysconfigpath.serverconfig.end()){
+                                if(sysconfigpath.serverconfig[peer->header->host].find("controlsopath")!=sysconfigpath.serverconfig[peer->header->host].end()){
+                                        moduleso=sysconfigpath.serverconfig[peer->header->host]["controlsopath"];
+                                }
+                        } 
+                        if(moduleso.empty()){
+                            moduleso=sysconfigpath.serverconfig["default"]["controlsopath"];
+                        }
+                        if(moduleso.size()>0&&moduleso.back()!='/'){
+                            moduleso.append("/");
+                        }
+                        moduleso=moduleso+"default.so";
+                        if (stat(moduleso.c_str(),&modso)==0){
+                                visttype=2;
+                                auto sitemodloadis=http::loadcontrol(modulemethod);
+                                std::string sitecontent=sitemodloadis(peer->getpeer());    
+                                if(sitecontent.empty()){
+                                    if(peer->vobj.as_int()==0){
+                                            peer->send(200);
+                                    }
+                                }else{
+                                    peer->send(200,sitecontent);
+                                }
+                                            
+                        }
+                  }
+
+            }    
+
+        }
+        if(visttype==0){
+              if(peer->pathtype==2){
+                    
+                    bool isshowdirectory=false;
+                    
+                    if(sysconfigpath.serverconfig.find(peer->header->host)!=sysconfigpath.serverconfig.end()){
+                        if(sysconfigpath.serverconfig[peer->header->host].find("directorylist")!=sysconfigpath.serverconfig[peer->header->host].end()){
+                                  if(!sysconfigpath.serverconfig[peer->header->host]["directorylist"].empty()){
+                                        isshowdirectory=true;
+                                  }
+                        }
+                    } 
+                    if(isshowdirectory==false){
+                          if(sysconfigpath.serverconfig["default"].find("directorylist")!=sysconfigpath.serverconfig["default"].end()){
+                                  if(!sysconfigpath.serverconfig["default"]["directorylist"].empty()){
+                                        isshowdirectory=true;
+                                  }
+                        }
+                    }
+                    if(isshowdirectory){
+                          visttype=4;
+                          peer->displaydirectory(sysconfigpath.configpath);
+                    }
+            } 
+            if(visttype==0){
+                
+                peer->send(404,peer->header->urlpath);
+                visttype=7;
+            }
+        }
+        peer->_output.clear(); 
+        peer->vobj.clear(); 
+        if(peer->header->state.keeplive&&peer->keeplive){
+          peer->keeplivemax-=1;
+          peer->header->headerfinish=0;
+          peer->header->headerstep=0;
+              
+        }
       peer->looprunpromise.set_value(1);
    }catch (std::exception& e)
     {

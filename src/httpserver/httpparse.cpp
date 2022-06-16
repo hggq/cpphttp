@@ -782,28 +782,23 @@ namespace http {
                                                 case 15:
                                                          if(header_key[7]=='E'){   
                                                                   if(strcasecmp(header_key.c_str(),"Accept-Encoding")==0){
-                                                                         
                                                                         getacceptencoding();
                                                                         break;
                                                                   } 
                                                           }else if(header_key[7]=='L'){
                                                                 if(strcasecmp(header_key.c_str(),"Accept-Language")==0){
-                                                                        
                                                                         getacceptlanguage();   
                                                                         break;   
                                                                   } 
                                                           }       
                                                                    
-                                                              if(strcasecmp(header_key.c_str(),"Accept-Encoding")==0){
-                                                                         
+                                                            if(strcasecmp(header_key.c_str(),"Accept-Encoding")==0){
                                                                         getacceptencoding();
-                                                                         
-                                                                  } 
-                                                                     if(strcasecmp(header_key.c_str(),"Accept-Language")==0){
+                                                            } 
+                                                            if(strcasecmp(header_key.c_str(),"Accept-Language")==0){
+                                                                  getacceptlanguage();   
                                                                         
-                                                                        getacceptlanguage();   
-                                                                          
-                                                                  }      
+                                                            }      
                                                       //Accept-Language
                                                       
                                                        break;  
@@ -1477,8 +1472,8 @@ namespace http {
                                                 header_temp.clear();  
                                                 header_input.clear();
                                                 buffer_key.clear(); 
-                                                 headendhitnum=1;
-                                                 headerstep=0;
+                                                headendhitnum=1;
+                                                headerstep=0;
                                                  i++;     
                                                  if(buffer[i]==0x2D&&buffer[i+1]==0x2D){
                                                       headerfinish=2;
@@ -1559,10 +1554,10 @@ namespace http {
                                                                         key2name.push_back(upfile.name[m]);
                                                                   }   
                                                                   
-
                                                             }
                                                             
                                                             if(ishaskey2&&m==upfile.name.length()){
+                                                            
                                                             }else{
                                                                 ishaskey2=false;  
                                                             }
@@ -1578,13 +1573,13 @@ namespace http {
                                                                   http::OBJ_VALUE objtemp;
                                                                   objtemp.set_array();
                                                                   objtemp["filename"]=upfile.filename;
-                                                                        objtemp["tempfile"]=upfile.tempfile;
-                                                                        objtemp["type"]=upfile.type;
-                                                                        objtemp["size"]=upfile.size;
-                                                                        objtemp["error"]=upfile.error;
+                                                                  objtemp["tempfile"]=upfile.tempfile;
+                                                                  objtemp["type"]=upfile.type;
+                                                                  objtemp["size"]=upfile.size;
+                                                                  objtemp["error"]=upfile.error;
 
-                                                                   http::OBJ_ARRAY objtemp1;
-                                                                 objtemp1.push(std::move(objtemp));      
+                                                                  http::OBJ_ARRAY objtemp1;
+                                                                  objtemp1.push(std::move(objtemp));      
                                                                   files[objname].push(std::move(objtemp1));       
 
                                                           }else{
@@ -1593,10 +1588,10 @@ namespace http {
                                                                   http::OBJ_VALUE objtemp;
                                                                   objtemp[key2name].set_array();
                                                                   objtemp[key2name]["filename"]=upfile.filename;
-                                                                        objtemp[key2name]["tempfile"]=upfile.tempfile;
-                                                                        objtemp[key2name]["type"]=upfile.type;
-                                                                        objtemp[key2name]["size"]=upfile.size;
-                                                                        objtemp[key2name]["error"]=upfile.error;
+                                                                  objtemp[key2name]["tempfile"]=upfile.tempfile;
+                                                                  objtemp[key2name]["type"]=upfile.type;
+                                                                  objtemp[key2name]["size"]=upfile.size;
+                                                                  objtemp[key2name]["error"]=upfile.error;
                                                                   files[objname].set_array();
                                                                   files[objname].push(std::move(objtemp));      
 
@@ -1611,10 +1606,10 @@ namespace http {
                                                                   http::OBJ_VALUE objtemp;
                                                                   objtemp.set_array();
                                                                   objtemp["filename"]=upfile.filename;
-                                                                        objtemp["tempfile"]=upfile.tempfile;
-                                                                        objtemp["type"]=upfile.type;
-                                                                        objtemp["size"]=upfile.size;
-                                                                        objtemp["error"]=upfile.error;
+                                                                  objtemp["tempfile"]=upfile.tempfile;
+                                                                  objtemp["type"]=upfile.type;
+                                                                  objtemp["size"]=upfile.size;
+                                                                  objtemp["error"]=upfile.error;
 
                                                                   files[objname][key1name]=objtemp;
                                                                   
@@ -1636,15 +1631,15 @@ namespace http {
                                                }else if(n==upfile.name.length()){
                                                       //只有一个
                                                       if(key1name.empty()){
-                                                          files[objname].set_array();  
-                                                          http::OBJ_VALUE objtemp;
-                                                          objtemp.set_array();
-                                                          objtemp["filename"]=upfile.filename;
+                                                            files[objname].set_array();  
+                                                            http::OBJ_VALUE objtemp;
+                                                            objtemp.set_array();
+                                                            objtemp["filename"]=upfile.filename;
                                                             objtemp["tempfile"]=upfile.tempfile;
                                                             objtemp["type"]=upfile.type;
                                                             objtemp["size"]=upfile.size;
                                                             objtemp["error"]=upfile.error;
-                                                          files[objname]=objtemp;        
+                                                            files[objname]=objtemp;        
                                                       }else{
                                                           //files[objname].push(key1name,"");
                                                             files[objname][key1name].set_array();  
@@ -1697,7 +1692,7 @@ namespace http {
                                    //both 0D between 
                                    if(buffer[i+1]!=0x0A){
                                         if(headerstep==100){
-                                                headerstep=0;
+                                           headerstep=0;
                                         }else{
                                            headerstep=0;     
                                         }  
@@ -1737,9 +1732,9 @@ namespace http {
                                                 header_temp.clear();  
                                                 header_input.clear();
                                                 buffer_key.clear(); 
-                                                 headendhitnum=1;
-                                                  headerstep=0;
-                                                 i++;     
+                                                headendhitnum=1;
+                                                headerstep=0;
+                                                i++;     
                                                  if(buffer[i]==0x2D&&buffer[i+1]==0x2D){
                                                       headerfinish=2;
                                                       i+=2;

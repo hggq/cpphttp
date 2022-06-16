@@ -22,7 +22,7 @@
 namespace http {
  
 
- std::string siteviewpath="module/view/";
+std::string siteviewpath="module/view/";
 std::string sitecontrolpath="module/controller/";
 std::map<std::size_t,std::vector<std::string>>  sharedmethodchache;
 std::map<std::size_t,method_callback_t>  sharedpathchache;//,controlpathchache;
@@ -190,32 +190,26 @@ method_callback_t sendjsoncall(std::string modulemethod){
         } 
         return echoviewempty;
 }
- mysqlx::SqlResult domysqleditexecute(std::string &sql,size_t dbhash){
-                auto iter=mysqldbpoolglobal.find(dbhash);
+    mysqlx::SqlResult domysqleditexecute(std::string &sql,size_t dbhash){
+        auto iter=mysqldbpoolglobal.find(dbhash);
 
-                        mysqlx::SqlResult res = iter->second.sqleditfetch(sql);
+        mysqlx::SqlResult res = iter->second.sqleditfetch(sql);
+        return std::move(res);
 
-                        return std::move(res);
+    }   
+    mysqlx::RowResult domysqlexecute(std::string &sql,size_t dbhash){
 
-        }   
-        mysqlx::RowResult domysqlexecute(std::string &sql,size_t dbhash){
-            
-                auto iter=mysqldbpoolglobal.find(dbhash);
+        auto iter=mysqldbpoolglobal.find(dbhash);
+        mysqlx::RowResult res = iter->second.sqlselectfetch(sql);
+        return std::move(res);
 
-                        mysqlx::RowResult res = iter->second.sqlselectfetch(sql);
+    }
+    bool domysqlcommit(std::list<std::string> &sql,size_t dbhash){
 
-                        return std::move(res);
+        auto iter=mysqldbpoolglobal.find(dbhash);
+        return iter->second.sqleditcommit(sql);
 
-        }
-         bool domysqlcommit(std::list<std::string> &sql,size_t dbhash){
-            
-                auto iter=mysqldbpoolglobal.find(dbhash);
-
-                       return iter->second.sqleditcommit(sql);
-
-                        
-
-        }
+    }
 void initcallbackmap(){
     // if(rendercallback.size()==0){
     //         rendercallback["view"]=loadview;
@@ -579,22 +573,22 @@ void controlmoduleclear(std::string module,std::string method){
                 std::string hash;
                 for(int i=0;i<iter->second.size();i++)
                 {
-                            hash.clear();  
-                            hash.append(module);
-                            hash.push_back('/');
-                            hash.append(iter->second[i]);
+                    hash.clear();  
+                    hash.append(module);
+                    hash.push_back('/');
+                    hash.append(iter->second[i]);
 
-                            hash.append(path);
-                         
-                            size_t t=std::hash<std::string>{}(hash);
-                         
-                            auto citer=controlpathchache.find(t);
-                             if(citer!=controlpathchache.end()){
-                                 citer->second.clear();
-                                 std::unique_lock<std::mutex> lock(loadcontrolmtx);
-                                 controlpathchache.erase(citer);
-                                 
-                            }
+                    hash.append(path);
+                    
+                    size_t t=std::hash<std::string>{}(hash);
+                    
+                    auto citer=controlpathchache.find(t);
+                        if(citer!=controlpathchache.end()){
+                            citer->second.clear();
+                            std::unique_lock<std::mutex> lock(loadcontrolmtx);
+                            controlpathchache.erase(citer);
+                            
+                    }
 
                 }
                 std::unique_lock<std::mutex> lock(moudulecachemethod);
@@ -721,7 +715,7 @@ void echo_json(http::OBJ_VALUE &b){
    } 
 
 
-     inline  long long intval(std::string &content){
+    inline  long long intval(std::string &content){
         long long temp=0;
         for(int i=0;i<content.size();i++){
             if(content[i]==0x20){
@@ -730,10 +724,10 @@ void echo_json(http::OBJ_VALUE &b){
             if(content[i]>='0'&&content[i]<='9'){
                     temp=temp*10+(content[i]-'0');
             }
-             
+                
         }
         return temp;
-   }  
+    }  
 
 void echo(std::string &b){
 getthreadlocalobj().peer->_output.append(b);  

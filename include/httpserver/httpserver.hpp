@@ -114,12 +114,11 @@ bool _siteusehtmlchache;
 unsigned int _siteusehtmlchachetime;
 
 
-
   std::string get_password(){
       return "sslpem123456";
   }
-  long   serverNameCallback(SSL *ssl, int *ad, void *arg) 
-{
+  long serverNameCallback(SSL *ssl, int *ad, void *arg) 
+  {
     if (ssl == NULL)
         return SSL_TLSEXT_ERR_NOACK;
    
@@ -128,12 +127,12 @@ unsigned int _siteusehtmlchachetime;
 
      if (servername && strlen(servername) > 0)
     {       
-              ctxmar* ctxptr = ctxmar::instance();
-              ctx=ctxptr->getctx(servername);
+        ctxmar* ctxptr = ctxmar::instance();
+        ctx=ctxptr->getctx(servername);
               
     }else{
-              ctxmar* ctxptr = ctxmar::instance();
-              ctx=ctxptr->getdefaultctx();
+        ctxmar* ctxptr = ctxmar::instance();
+        ctx=ctxptr->getdefaultctx();
     }
 
     SSL_set_SSL_CTX(ssl, ctx);
@@ -180,7 +179,7 @@ void loadmysqlconfig(){
          }
          for(auto iterl=mysqldblinkgroupjion.begin();iterl!=mysqldblinkgroupjion.end();iterl++){
                 
-                 dcon=hash_fn(iterl->first);
+                dcon=hash_fn(iterl->first);
                 if(iterl->second.size()==1){
                     http::mysqllinkpool db(iterl->second[0],iterl->second[0]);
                     http::mysqldbpoolglobal.insert({dcon,std::move(db)}); 
@@ -218,7 +217,7 @@ void loadserverglobalconfig(){
    }else{
        sysconfigpath.siteusehtmlchache=true;
    }
-    if(sysconfigpath.serverconfig["default"]["usehtmlcachetime"].empty()){
+   if(sysconfigpath.serverconfig["default"]["usehtmlcachetime"].empty()){
         sysconfigpath.siteusehtmlchachetime=0;
    }else{
        sysconfigpath.siteusehtmlchachetime=0;
@@ -326,7 +325,6 @@ public:
     peer->getremoteport();
     peer->getlocalip();
     peer->getlocalport();
-    // peer->globalconfig=&_serverconfig;
     serverconfig&  sysconfigpath=  getserversysconfig();
     for (;;) {
         peer->header->clear();
@@ -363,23 +361,23 @@ public:
                 peer->send(resp);                    
                 peer->ws->isopen = true;
 
-                  if(peer->header->pathinfo.size()==0){
-                       co_return;
-                  }
-                  auto wsiter= sysconfigpath.websocketmethodcallback.find(peer->header->pathinfo[0]);   
-                  if(wsiter==sysconfigpath.websocketmethodcallback.end()){
+                if(peer->header->pathinfo.size()==0){
                       co_return;
-                  }
-                  auto myclientwsplugin=sysconfigpath.websocketmethodcallback[peer->header->pathinfo[0]];
-                   peer->websocket=myclientwsplugin(peer);
-                   peer->websocket->onopen();
-                   if(peer->websocket->timeloop_num>0){
-                      websockettasks.emplace_back(peer);
-                   }
+                }
+                auto wsiter= sysconfigpath.websocketmethodcallback.find(peer->header->pathinfo[0]);   
+                if(wsiter==sysconfigpath.websocketmethodcallback.end()){
+                    co_return;
+                }
+                auto myclientwsplugin=sysconfigpath.websocketmethodcallback[peer->header->pathinfo[0]];
+                peer->websocket=myclientwsplugin(peer);
+                peer->websocket->onopen();
+                if(peer->websocket->timeloop_num>0){
+                  websockettasks.emplace_back(peer);
+                }
                    
-                   for (;;) {
+                   for(;;) {
                   
-                    for (;;) {
+                    for(;;) {
  
                        memset(peer->_data, 0x00, 2048);
                      
@@ -440,14 +438,14 @@ public:
         }
         
 
-         if(peer->keeplivemax==0){
-             break;
-          }
-          if(peer->header->state.keeplive&&peer->keeplive){
-            
-          }else{
+        if(peer->keeplivemax==0){
             break;
-          }
+        }
+        if(peer->header->state.keeplive&&peer->keeplive){
+          
+        }else{
+          break;
+        }
 
         peer->cookie.clear();
         peer->headerlists.clear();
@@ -496,7 +494,6 @@ public:
       }
       tcp::socket socket = co_await acceptor.async_accept(use_awaitable);
  
-
       clientp->http_socket.emplace_back(std::move(socket));
       clientp->isssl=false;
       std::unique_lock<std::mutex> lock(headqueue_mutex);
@@ -509,8 +506,8 @@ public:
   awaitable<void> listeners() {
     auto executor = co_await this_coro::executor;
    // tcp::acceptor acceptor(executor, {tcp::v4(), 443});
-     asio::error_code ec_error;
-     tcp::acceptor acceptor(executor);
+    asio::error_code ec_error;
+    tcp::acceptor acceptor(executor);
     asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), 443);
     acceptor.open(endpoint.protocol());
 
@@ -535,21 +532,21 @@ public:
     filepath.append("server.pem");
 
     asio::ssl::context context_(asio::ssl::context::sslv23);
-                        context_.set_options(
+    context_.set_options(
                         asio::ssl::context::default_workarounds
                         | asio::ssl::context::no_sslv2
                         | asio::ssl::context::single_dh_use);
-                    context_.set_password_callback(std::bind(get_password));
-                    context_.use_certificate_chain_file(filepath.c_str());
-                         filepath.erase(filepath.end()-4,filepath.end());
+    context_.set_password_callback(std::bind(get_password));
+    context_.use_certificate_chain_file(filepath.c_str());
+    filepath.erase(filepath.end()-4,filepath.end());
 
-                  filepath.append(".key");
+    filepath.append(".key");
 
-                    context_.use_private_key_file(filepath.c_str(), asio::ssl::context::pem);
-                    filepath=serverconfigpath;
-                    filepath.append("dh4096.pem");
-                    context_.use_tmp_dh_file(filepath.c_str());
-                    SSL_CTX_set_tlsext_servername_callback(context_.native_handle(), serverNameCallback);
+    context_.use_private_key_file(filepath.c_str(), asio::ssl::context::pem);
+    filepath=serverconfigpath;
+    filepath.append("dh4096.pem");
+    context_.use_tmp_dh_file(filepath.c_str());
+    SSL_CTX_set_tlsext_servername_callback(context_.native_handle(), serverNameCallback);
     
     serverconfig&  sysconfigpath=  getserversysconfig();
     for (;;) {
@@ -580,13 +577,11 @@ public:
   void http_run() {
 
     co_spawn(this->io_context, listener(), detached);
-
     this->io_context.run();
   }
   void https_run() {
 
     co_spawn(this->io_context, listeners(), detached);
-
     this->io_context.run();
   }
 
@@ -596,7 +591,7 @@ public:
      if(serverconfigpath.empty()){
 
       std::string currentpath="/etc/chttp";
-       fs::path cpath=currentpath; 
+      fs::path cpath=currentpath; 
       if (fs::is_directory(cpath))
       {
           currentpath=currentpath+"/server.conf";
@@ -607,9 +602,9 @@ public:
           }
       }
       if(serverconfigpath.empty()){
-           cpath=fs::current_path();
-           currentpath=cpath.string();
-           currentpath=currentpath+"/config";
+          cpath=fs::current_path();
+          currentpath=cpath.string();
+          currentpath=currentpath+"/config";
           cpath=currentpath; 
           if (fs::is_directory(cpath))
           {
@@ -632,10 +627,10 @@ public:
     }
     sysconfigpath.configpath=serverconfigpath;
 
-      bool reloadmysql=true; 
+    bool reloadmysql=true; 
     bool reloadserverconfig=true; 
     bool alonehttpserver=true; 
-     unsigned int  updatetimetemp=0;
+    unsigned int  updatetimetemp=0;
 
     _initwebsocketmethodregto(sysconfigpath.websocketmethodcallback);
     _inithttpmethodregto(sysconfigpath.methodcallback);
@@ -644,38 +639,35 @@ public:
      ctxptr->setconfigpath(sysconfigpath.configpath);
      clientapi* pn =clientapi::instance();
  
-             pn->api_loadview=loadview;
-             pn->api_loadviewnotcall=loadviewnotcall;
-             pn->api_loadviewfetchnotcall=loadviewfetchnotcall;
-             pn->api_loadviewobjcall=loadviewobjcall;
+        pn->api_loadview=loadview;
+        pn->api_loadviewnotcall=loadviewnotcall;
+        pn->api_loadviewfetchnotcall=loadviewfetchnotcall;
+        pn->api_loadviewobjcall=loadviewobjcall;
 
-             pn->api_loadcontrol=loadcontrol;
-             pn->api_sendjsoncall=sendjsoncall;
-             pn->api_modulesenddata=modulesenddata;
+        pn->api_loadcontrol=loadcontrol;
+        pn->api_sendjsoncall=sendjsoncall;
+        pn->api_modulesenddata=modulesenddata;
+        pn->api_echoassignand=echoassignand; 
 
-             pn->api_echoassignand=echoassignand; 
+        pn->api_echoassign=echoassign;
+        pn->api_echo_flush=echo_flush; 
+        pn->api_send_file=send_file;  
 
-             pn->api_echoassign=echoassign;
-             pn->api_echo_flush=echo_flush; 
-             pn->api_send_file=send_file;  
+        pn->api_mysqlselect=domysqlexecute;
+        pn->api_mysqledit=domysqleditexecute;
 
- 
-           pn->api_mysqlselect=domysqlexecute;
-           pn->api_mysqledit=domysqleditexecute;
-
-           pn->api_mysqlcommit=domysqlcommit;  
-           
-           pn->getpeer=getpeer;  
-           pn->getoutput=getoutput;  
+        pn->api_mysqlcommit=domysqlcommit;  
+        pn->getpeer=getpeer;  
+        pn->getoutput=getoutput;  
 
      std::string exfile="/tmp/httpexpid.locksocket";
      asio::io_context io_c;
      asio::local::stream_protocol::socket s(io_c);
     try{
-         s.connect(asio::local::stream_protocol::endpoint(exfile.c_str()));
+      s.connect(asio::local::stream_protocol::endpoint(exfile.c_str()));
     }catch (std::exception& e){
       alonehttpserver=false;
-     }
+    }
      unsigned char buf[6];
      unsigned int  temp=0;
      union pidtochar{
@@ -694,17 +686,17 @@ public:
              reloadserverconfig=false;
          }
  
-            if(clientrunpool.getlivenum()>(clientrunpool.getmixthreads()-3)){
-                clientrunpool.addthread(3);
-                updatetimetemp=0;
-            }else if(clientrunpool.getpoolthreadnum()>clientrunpool.getmixthreads()){
-                
-                updatetimetemp+=1;
-                if(updatetimetemp==5){
-                    clientrunpool.fixthread(); 
-                    updatetimetemp=0;
-                }
-            }
+          if(clientrunpool.getlivenum()>(clientrunpool.getmixthreads()-3)){
+              clientrunpool.addthread(3);
+              updatetimetemp=0;
+          }else if(clientrunpool.getpoolthreadnum()>clientrunpool.getmixthreads()){
+              
+              updatetimetemp+=1;
+              if(updatetimetemp==5){
+                  clientrunpool.fixthread(); 
+                  updatetimetemp=0;
+              }
+          }
           clientrunpool.printthreads();  
 
          buf[0]=0x84;
@@ -727,9 +719,6 @@ public:
               break;
             }
         }
-
-     
-
       
      }   
   }

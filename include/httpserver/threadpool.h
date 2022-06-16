@@ -81,10 +81,10 @@ public:
   void http_websocketsrun(std::shared_ptr<clientpeer>);
   bool fixthread();
   unsigned int getpoolthreadnum();
-   void printthreads();
-     unsigned int getlivenum(){ return livethreadcount.load();  };
-    unsigned int gettasknum(){ return clienttasks.size();  };
-    unsigned int getmixthreads(){ return mixthreads.load();  };
+  void printthreads();
+  unsigned int getlivenum(){ return livethreadcount.load();  };
+  unsigned int gettasknum(){ return clienttasks.size();  };
+  unsigned int getmixthreads(){ return mixthreads.load();  };
   ~ThreadPool();
   std::string name; //测试共享
 private:
