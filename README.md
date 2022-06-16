@@ -1,4 +1,4 @@
-c++ http server framework
+c++ http web framework
 
 c++ http web 框架
 
@@ -57,7 +57,7 @@ boost 1.71
 
 
 ubuntu 20.04 必须安装gcc11
-默认是g++-11 
+
 在编译时候要把g++ 换成g++-11
 
 
@@ -65,7 +65,7 @@ config 目录
 ---------------
 config/gcc.conf 文件
 
-里面内容如果是ubuntu20.04 必须改为g++-11 
+里面内容如果是ubuntu20.04 改为g++-11 
 
 conifg/server.conf 服务器文件
 
