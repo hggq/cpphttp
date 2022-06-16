@@ -1992,6 +1992,7 @@ namespace http {
                  headerrawcontent.clear();
                  header.clear();
                  pathinfo.clear();
+                 urlpath.clear();
                  readoffset=0;
                  headendhitnum=0;
                  host.clear();

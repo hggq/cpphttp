@@ -351,6 +351,20 @@ public:
         if(peer->header->cookie.check("CPPSESSID")){
             peer->parse_session();
         }
+        {
+            std::string  temp=http::date("%Y-%m-%d %X");
+            temp.push_back(0x20);
+            temp.append(peer->remote_ip);
+            temp.push_back(0x20);
+            temp.append(peer->header->host);
+            temp.append(peer->header->urlpath);
+            temp.push_back('\n');
+            std::unique_lock<std::mutex> lock(log_mutex);
+            loglist.emplace_back(temp);
+            lock.unlock();
+        }
+        
+
         if(peer->header->state.websocket){    
                 peer->httptype=1;  
                
@@ -660,11 +674,11 @@ public:
         pn->getpeer=getpeer;  
         pn->getoutput=getoutput;  
 
-     std::string exfile="/tmp/httpexpid.locksocket";
+     std::string currentpath="/tmp/httpexpid.locksocket";
      asio::io_context io_c;
      asio::local::stream_protocol::socket s(io_c);
     try{
-      s.connect(asio::local::stream_protocol::endpoint(exfile.c_str()));
+      s.connect(asio::local::stream_protocol::endpoint(currentpath.c_str()));
     }catch (std::exception& e){
       alonehttpserver=false;
     }
@@ -676,6 +690,9 @@ public:
     }pidex;
     pidex.i=getpid();
 
+    currentpath.clear();
+    std::string tempurl;
+    struct flock lockstr = {};
     for(;;){
         if(reloadmysql){
              loadmysqlconfig();
@@ -719,7 +736,46 @@ public:
               break;
             }
         }
-      
+        //save log 
+
+
+        if(currentpath.empty()){
+          currentpath=sysconfigpath.serverconfig["default"]["logpath"];
+          if(currentpath.size()>0&&currentpath.back()!='/'){
+            currentpath.push_back('/');
+          }
+          currentpath.append("access.log");
+        }
+
+        int fd = open(currentpath.c_str(), O_WRONLY|O_CREAT|O_APPEND,0666);
+        if (fd == -1) {
+            continue;
+        }  
+        
+        lockstr.l_type = F_WRLCK;
+        lockstr.l_whence = 0;
+        lockstr.l_start = 0;
+        lockstr.l_len = 0;
+
+        lockstr.l_pid =0;
+
+        if (fcntl(fd, F_SETLK, &lockstr) == -1) {
+            continue;
+        }
+        std::unique_lock<std::mutex> loglock(log_mutex);
+        while (!loglist.empty()) {
+                int n=write(fd,loglist.front().data(),loglist.front().size());
+                loglist.pop_front();
+        }
+        loglock.unlock();
+
+        lockstr.l_type = F_UNLCK;
+        if (fcntl(fd, F_SETLK, &lockstr) == -1) {
+          
+           continue;
+        }
+        close(fd);
+
      }   
   }
   void run() {
@@ -779,6 +835,11 @@ public:
   bool stop;
   std::atomic_uint total_count = 0;
   // httpheader end
+  //log
+  std::list<std::string> loglist;
+  std::mutex log_mutex;
+  std::condition_variable log_condition;
+  //log end
 
   ThreadPool clientrunpool{32};
   
