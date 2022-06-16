@@ -3,6 +3,7 @@ Cache/*
 module/*
 tmp/*
 upload/*
+log/*
 */.DS_Store
 a.out
 clihttp
