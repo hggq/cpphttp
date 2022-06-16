@@ -8,13 +8,12 @@
 #include <set>
 #include <string_view>
 #include <thread>
-//#include "http.hpp"
+
 #include "request.h"
 #include "modulemar.hpp"
 #include "http_header.hpp"
-// #include "mysqlplugin.hpp"
- #include "mysqlconfig.hpp"
-// #include "mysqlpool.h"
+
+#include "mysqlconfig.hpp"
 #include "Clientpeer.h"
 #include "mysqlproxyfun.h"
 #include "httpsocommonapi.h"
@@ -369,7 +368,7 @@ www_method_call loadcontrol(std::string modulemethod){
         if(hash.size()>0){
             path=hash;
         }else{
-             if(path.back()!='/'){
+             if(path.size()>0&&path.back()!='/'){
                 path.push_back('/');
             }
     
@@ -378,11 +377,11 @@ www_method_call loadcontrol(std::string modulemethod){
                 
             } 
             for(;i<modulemethod.size();i++){
-                    if(modulemethod[i]=='/'){
-                        i++;
-                        break;
-                    }
-                    path.push_back(modulemethod[i]);
+                if(modulemethod[i]=='/'){
+                    i++;
+                    break;
+                }
+                path.push_back(modulemethod[i]);
             }
             path.append(".so");
         }

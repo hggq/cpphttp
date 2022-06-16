@@ -324,6 +324,7 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
                                         } 
                                         if(moduleso.empty()){
                                             moduleso=sysconfigpath.serverconfig["default"]["controlsopath"];
+                                            threadlocalvar.hostcontrolsopath=moduleso;
                                         }
                                         if(moduleso.size()>0&&moduleso.back()!='/'){
                                             moduleso.append("/");
@@ -437,15 +438,18 @@ void ThreadPool::http_clientrun(std::shared_ptr<clientpeer> peer) {
       peer->looprunpromise.set_value(1);
    }catch (std::exception& e)
     {
-           peer->looprunpromise.set_exception(std::current_exception());
+      peer->looprunpromise.set_exception(std::current_exception());
     }              
 }
 
 void ThreadPool::http_websocketsrun(std::shared_ptr<clientpeer> peer) {
   try
   { 
+      threadlocalconfig&  threadlocalvar=getthreadlocalobj();
+      threadlocalvar.peer=peer.get();
+
       if(peer->ws->isfile){
-          peer->websocket->onfiles(peer->ws->filename);
+        peer->websocket->onfiles(peer->ws->filename);
       }else{
         peer->websocket->onmessage(peer->ws->indata);
       }

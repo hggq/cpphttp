@@ -483,7 +483,7 @@ public:
     acceptor.listen(asio::socket_base::max_connections, ec);
     if (ec) {
 
-      perror("acceptor listen error");
+      perror("acceptor listen http error");
       exit(1);
     }
     serverconfig&  sysconfigpath=  getserversysconfig();
@@ -508,10 +508,31 @@ public:
 
   awaitable<void> listeners() {
     auto executor = co_await this_coro::executor;
-    tcp::acceptor acceptor(executor, {tcp::v4(), 443});
+   // tcp::acceptor acceptor(executor, {tcp::v4(), 443});
+     asio::error_code ec_error;
+     tcp::acceptor acceptor(executor);
+    asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), 443);
+    acceptor.open(endpoint.protocol());
+
+    acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
+
+    #if (defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)) && !defined(__CYGWIN__)
+
+        typedef asio::detail::socket_option::boolean<SOL_SOCKET, SO_REUSEPORT> reuse_port;
+        acceptor.set_option(reuse_port(true));
+
+    #endif
+
+    acceptor.bind(endpoint, ec_error);
+    acceptor.listen(asio::socket_base::max_connections, ec_error);
+    if(ec_error){
+        perror("acceptor listen https error");
+        exit(1);
+    }
+
 
     std::string filepath=serverconfigpath;
-    filepath.append("www.869869.com.pem");
+    filepath.append("server.pem");
 
     asio::ssl::context context_(asio::ssl::context::sslv23);
                         context_.set_options(
@@ -529,7 +550,7 @@ public:
                     filepath.append("dh4096.pem");
                     context_.use_tmp_dh_file(filepath.c_str());
                     SSL_CTX_set_tlsext_servername_callback(context_.native_handle(), serverNameCallback);
-    asio::error_code ec_error;
+    
     serverconfig&  sysconfigpath=  getserversysconfig();
     for (;;) {
  

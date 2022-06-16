@@ -18,7 +18,9 @@ namespace HTTP
 { 
 
     class VISIT_LOG{
+        public:
             VISIT_LOG();
+            save_log();
         public:
                VISIT_LOG& operator<<(std::string &&a);
                  VISIT_LOG& operator<<(std::string &a);
