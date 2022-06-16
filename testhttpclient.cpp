@@ -40,15 +40,15 @@ int main()
   parameter["name"]="老师短发";
   std::cout<<"asio version:"<<ASIO_VERSION<<std::endl;
   std::cout<<"name:"<<parameter["name"].size()<<std::endl;
-  // parameter["name"]=parameter["name"]+0x11;
-  {
-    std::string *p=parameter["name"].ptr_string();
-    p->append("aaa");
-    std::cout<<"pp:"<<*p<<std::endl;
-    std::string &ptr=parameter["name"].ref();
+  // // parameter["name"]=parameter["name"]+0x11;
+  // {
+  //   std::string *p=parameter["name"].ptr_string();
+  //   p->append("aaa");
+  //   std::cout<<"pp:"<<*p<<std::endl;
+  //   std::string &ptr=parameter["name"].ref();
 
-    ptr.append("bbb");
-  }
+  //   ptr.append("bbb");
+  // }
 
 
     parameter["num"]=345;
