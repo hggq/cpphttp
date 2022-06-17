@@ -459,10 +459,26 @@ public:
   awaitable<void> listener() {
     auto executor = co_await this_coro::executor;
     asio::error_code ec;
+    serverconfig&  sysconfigpath=  getserversysconfig();
+
+    unsigned short portnum=80;
+    std::string filepath=sysconfigpath.serverconfig["default"]["httpport"];
+
+    if(filepath.size()>1){
+          portnum=0;
+          for(int qi=0;qi<filepath.size();qi++){
+                if(filepath[qi]<0x3A&&filepath[qi]>0x2F){
+                                portnum= portnum*10+(filepath[qi]-0x30);
+                }
+          }
+          if(portnum==0){
+              portnum=80;
+          }
+    }
 
     tcp::acceptor acceptor(executor);
 
-    asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), 4444);
+    asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), portnum);
     acceptor.open(endpoint.protocol());
 
     acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
@@ -484,7 +500,7 @@ public:
       perror("acceptor listen http error");
       exit(1);
     }
-    serverconfig&  sysconfigpath=  getserversysconfig();
+  
     for (;;) {
       //clientpeer peer;
       std::shared_ptr<clientpeer> clientp= std::make_shared<clientpeer>();
@@ -506,9 +522,26 @@ public:
   awaitable<void> listeners() {
     auto executor = co_await this_coro::executor;
    // tcp::acceptor acceptor(executor, {tcp::v4(), 443});
+    serverconfig&  sysconfigpath=  getserversysconfig();
+
+    unsigned short portnum=443;
+    std::string filepath=sysconfigpath.serverconfig["default"]["httpsport"];
+
+    if(filepath.size()>1){
+          portnum=0;
+          for(int qi=0;qi<filepath.size();qi++){
+                if(filepath[qi]<0x3A&&filepath[qi]>0x2F){
+                                portnum= portnum*10+(filepath[qi]-0x30);
+                }
+          }
+          if(portnum==0){
+              portnum=443;
+          }
+    }
+
     asio::error_code ec_error;
     tcp::acceptor acceptor(executor);
-    asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), 443);
+    asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(),portnum);
     acceptor.open(endpoint.protocol());
 
     acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
@@ -528,7 +561,7 @@ public:
     }
 
 
-    std::string filepath=serverconfigpath;
+    filepath=sysconfigpath.configpath;
     filepath.append("server.pem");
 
     asio::ssl::context context_(asio::ssl::context::sslv23);
@@ -548,7 +581,7 @@ public:
     context_.use_tmp_dh_file(filepath.c_str());
     SSL_CTX_set_tlsext_servername_callback(context_.native_handle(), serverNameCallback);
     
-    serverconfig&  sysconfigpath=  getserversysconfig();
+    
     for (;;) {
  
       std::shared_ptr<clientpeer> clientp= std::make_shared<clientpeer>();
@@ -739,7 +772,7 @@ public:
         }  
         
         lockstr.l_type = F_WRLCK;
-        lockstr.l_whence = 0;
+        lockstr.l_whence = SEEK_END;
         lockstr.l_start = 0;
         lockstr.l_len = 0;
 
@@ -766,10 +799,29 @@ public:
   }
   void run() {
     try {
-      total_count = 0;
+      
        std::thread httpwatch(std::bind(&httpserver::httpwatch, this));
 
       std::this_thread::sleep_for(std::chrono::seconds(2)); 
+      
+      total_count = 0;
+      {
+        serverconfig&  sysconfigpath=  getserversysconfig();
+        for(;total_count<10;total_count++){
+          if(sysconfigpath.serverconfig.size()>0){
+                break;
+          }
+          std::this_thread::sleep_for(std::chrono::seconds(1)); 
+        }
+
+      }
+
+      if(total_count==10){
+         return;
+      }
+      total_count = 0;
+
+
       std::thread http(std::bind(&httpserver::http_run, this));
       std::thread https(std::bind(&httpserver::https_run, this));
  
