@@ -39,9 +39,16 @@ std::string date(std::string format,unsigned long inputtime=0){
         curr_time=inputtime;
     }
     tm* timeInfo;
-    std::string temp(30,'\0');
+    std::string temp(30,0x00);
     timeInfo = localtime(&curr_time);
     strftime(temp.data(),temp.length(),format.c_str(),timeInfo);
+    for(int i=0;i<temp.size();i++){
+        if(temp[i]==0x00){
+            i++;
+            temp.resize(i);
+            break;
+        }
+    }
     return temp;
 }
 

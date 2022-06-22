@@ -339,9 +339,9 @@ public:
         }
         {
             std::string  temp=http::date("%Y-%m-%d %X");
-            temp.push_back(0x20);
+            temp.push_back(0x09);
             temp.append(peer->remote_ip);
-            temp.push_back(0x20);
+            temp.push_back(0x09);
             temp.append(peer->header->host);
             temp.append(peer->header->urlpath);
             temp.push_back('\n');
