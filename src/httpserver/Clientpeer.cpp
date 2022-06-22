@@ -21,7 +21,7 @@
 #include <sys/fcntl.h>
 #include "datetime.h"
 #include "urlcode.h"
-
+#include "threadlocalvariable.h"
 
 #ifndef WIN32
 #include <unistd.h>
@@ -877,7 +877,11 @@ namespace http {
                                 pathtype=1;
                                 // use cahce html ,modulepath same urlpath
                                 // sample: /module/method/202204/22333.html
-                                if(isusehtmlcache&&header->pathinfo.size()>2&&chachefiletime>10&&chachefiletime<(http::timeid()-(unsigned long)fileinfo.st_mtime)){
+                                serverconfig&  sysconfigpath=  getserversysconfig();
+                                // if(isusehtmlcache&&header->pathinfo.size()>2&&chachefiletime>10&&chachefiletime<(http::timeid()-(unsigned long)fileinfo.st_mtime)){
+                                //     pathtype=3;
+                                // }   
+                                 if(sysconfigpath.siteusehtmlchache&&header->pathinfo.size()>2&&sysconfigpath.siteusehtmlchachetime>10&&sysconfigpath.siteusehtmlchachetime<(http::timeid()-(unsigned long)fileinfo.st_mtime)){
                                     pathtype=3;
                                 }                                    
                             }   
