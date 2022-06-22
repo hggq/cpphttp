@@ -456,9 +456,9 @@ namespace http {
                  if(headerstep==2||headerstep==6){
                        urlpath=http::url_decode(header_key.data(), header_key.length());
                  }  
+                 querystring.clear();
                  if(headerstep==6){
                      
-                      querystring.clear();
                       if(contentline[ioffset]==0x3F){
                               ioffset++;
                       }
@@ -1143,8 +1143,12 @@ namespace http {
                         if(buffer_value.size()>0){
                               buffer_value=http::url_decode(buffer_value.data(), buffer_value.length());
                               cookie[buffer_key]=buffer_value;
+                        }else{
+                              if(buffer_key.size()>0){
+                                   cookie[buffer_key]="";       
+                              }
+                              buffer_key.clear();
                         }  
-                       
                          
             }
             void httpparse::getheaderhost(){
@@ -1867,6 +1871,7 @@ namespace http {
                         unsigned int i=readoffset;
 
                         if(!uprawfile){
+                              srand((int)time(0));
                               header_temp="application/octet-stream"+std::to_string(timeid())+std::to_string(rand()); 
                               upfile.tempfile="./tmp/";
                               upfile.tempfile.append(std::to_string(std::hash<std::string>{}(header_temp)));
@@ -1889,8 +1894,9 @@ namespace http {
                         }
                          
                         if((upfile.size+2)>=poststate.length){
-
-                                    fclose(uprawfile);
+                                    if(uprawfile){
+                                          fclose(uprawfile);
+                                    }
                                     uprawfile=NULL;
                                     headerfinish=2;
                         }
@@ -1974,43 +1980,43 @@ namespace http {
             }
         }
         void httpparse::clear(){
-                 state.gzip=false;
-                 state.deflate=false;
-                 state.br=false; 
-                 state.avif=false;
-                 state.webp=false; 
-                 state.keeplive=false;
-                 state.websocket=false;
-                 state.upgradeconnection=false;
-                 state.rangebytes=false;
-                 state.language[0]={0};
-                 state.version=0;
-                 state.port=0;
-                 state.ifmodifiedsince=0;
-                 state.rangebegin=0;
-                 state.rangeend=0; 
-                 headerrawcontent.clear();
-                 header.clear();
-                 pathinfo.clear();
-                 querystring.clear();
-                 urlpath.clear();
-                 readoffset=0;
-                 headendhitnum=0;
-                 host.clear();
-                 etag.clear();
-                 error=0;      
-                 cookie.clear(); 
-                  method=HEAD_METHOD::UNKNOW;
-                  headerfinish=0;
-                   
-                  websocket.deflate=false;
-                  websocket.permessagedeflate=false;
-                  websocket.perframedeflate=false;
-                  websocket.deflateframe=false;
-                  websocket.isopen=false;
-                  websocket.version=0x00;
-                  websocket.key.clear();
-                  websocket.ext.clear();
+            state.gzip=false;
+            state.deflate=false;
+            state.br=false; 
+            state.avif=false;
+            state.webp=false; 
+            state.keeplive=false;
+            state.websocket=false;
+            state.upgradeconnection=false;
+            state.rangebytes=false;
+            state.language[0]={0};
+            state.version=0;
+            state.port=0;
+            state.ifmodifiedsince=0;
+            state.rangebegin=0;
+            state.rangeend=0; 
+            headerrawcontent.clear();
+            header.clear();
+            pathinfo.clear();
+            querystring.clear();
+            urlpath.clear();
+            readoffset=0;
+            headendhitnum=0;
+            host.clear();
+            etag.clear();
+            error=0;      
+            cookie.clear(); 
+            method=HEAD_METHOD::UNKNOW;
+            headerfinish=0;
+                  
+            websocket.deflate=false;
+            websocket.permessagedeflate=false;
+            websocket.perframedeflate=false;
+            websocket.deflateframe=false;
+            websocket.isopen=false;
+            websocket.version=0x00;
+            websocket.key.clear();
+            websocket.ext.clear();
                          
         }
       

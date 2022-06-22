@@ -800,8 +800,7 @@ public:
   void run() {
     try {
       
-       std::thread httpwatch(std::bind(&httpserver::httpwatch, this));
-
+      std::thread httpwatch(std::bind(&httpserver::httpwatch, this));
       std::this_thread::sleep_for(std::chrono::seconds(2)); 
       
       total_count = 0;
