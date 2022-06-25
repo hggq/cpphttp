@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>c++ web framework介绍</title>
+<link href="assets/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="assets/dist/css/sidebars.css" rel="stylesheet">
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+
+    
+    <!-- Custom styles for this template -->
+    <link href="navbar-top.css" rel="stylesheet">
+  </head>
+  <body>
+    
+<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">c++ web framework</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav me-auto mb-2 mb-md-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="index.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="testjquery.html">Downloads</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="websocket.html">Documents</a>
+        </li>
+      </ul>
+      <form class="d-flex">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+ <div class="flex-shrink-0 p-3 bg-white" style="width: 280px;">
+    <a href="/" class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
+      <svg class="bi me-2" width="30" height="24"><use xlink:href="#bootstrap"/></svg>
+      <span class="fs-5 fw-semibold">CppWebFrame</span>
+    </a>
+    <ul class="list-unstyled ps-0">
+      <li class="mb-1">
+        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="true">
+          概览
+        </button>
+        <div class="collapse show" id="home-collapse">
+          <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+            <li><a href="#" class="link-dark rounded">简介</a></li>
+			<li><a href="#" class="link-dark rounded">框架地图</a></li>
+            <li><a href="#" class="link-dark rounded">运行环境</a></li>
+            <li><a href="#" class="link-dark rounded">安装</a></li>
+		     <li><a href="#" class="link-dark rounded">Mac OS安装</a></li>
+			<li><a href="#" class="link-dark rounded">Linux安装</a></li>  
+		    <li><a href="#" class="link-dark rounded">服务器配置</a></li>
+			<li><a href="#" class="link-dark rounded">Hello World</a></li>  
+          </ul>
+        </div>
+      </li>
+      <li class="mb-1">
+        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#dashboard-collapse" aria-expanded="false">
+          WEB 模块
+        </button>
+        <div class="collapse" id="dashboard-collapse">
+          <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+			<li><a href="#" class="link-dark rounded">开发说明</a></li>
+			<li><a href="#" class="link-dark rounded">开发模式</a></li>
+			<li><a href="#" class="link-dark rounded">微型对象</a></li>
+			<li><a href="#" class="link-dark rounded">URL解析</a></li>	  
+			<li><a href="#" class="link-dark rounded">json输出和解析</a></li>
+			<li><a href="#" class="link-dark rounded">cookie管理</a></li>
+			<li><a href="#" class="link-dark rounded">session管理</a></li>
+			<li><a href="#" class="link-dark rounded">www文件服务</a></li>
+			<li><a href="#" class="link-dark rounded">html模版介绍</a></li>
+			<li><a href="#" class="link-dark rounded">压缩发送</a></li>
+			<li><a href="#" class="link-dark rounded">发送文件</a></li>
+			<li><a href="#" class="link-dark rounded">自定义header</a></li>
+			<li><a href="#" class="link-dark rounded">form表单接收</a></li>
+			<li><a href="#" class="link-dark rounded">json接收</a></li>
+			<li><a href="#" class="link-dark rounded">文件上传</a></li>
+			<li><a href="#" class="link-dark rounded">大文件下载</a></li>
+			<li><a href="#" class="link-dark rounded">404错误</a></li>
+			<li><a href="#" class="link-dark rounded">httpclient</a></li>
+			<li><a href="#" class="link-dark rounded">全站静态</a></li>
+			<li><a href="#" class="link-dark rounded">自动目录列表</a></li>
+          </ul>
+        </div>
+      </li>
+      <li class="mb-1">
+        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#orders-collapse" aria-expanded="false">
+          ORM 模块
+        </button>
+        <div class="collapse" id="orders-collapse">
+          <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+            <li><a href="#" class="link-dark rounded">开发说明</a></li>
+            <li><a href="#" class="link-dark rounded">数据库配置</a></li>
+            <li><a href="#" class="link-dark rounded">数据表类型支持</a></li>
+            <li><a href="#" class="link-dark rounded">数据模型介绍</a></li>
+			<li><a href="#" class="link-dark rounded">多库模式介绍</a></li>
+			<li><a href="#" class="link-dark rounded">查询操作</a></li>  
+			<li><a href="#" class="link-dark rounded">添加记录</a></li>  
+			<li><a href="#" class="link-dark rounded">更新记录</a></li>  
+			<li><a href="#" class="link-dark rounded">删除记录</a></li>  
+			<li><a href="#" class="link-dark rounded">数据结果操作</a></li>    
+			<li><a href="#" class="link-dark rounded">数据转json</a></li>    
+			<li><a href="#" class="link-dark rounded">数据集列操作</a></li>  
+			<li><a href="#" class="link-dark rounded">数据集转化</a></li>  
+			<li><a href="#" class="link-dark rounded">数据集API介绍</a></li>  
+			<li><a href="#" class="link-dark rounded">模型高级开发</a></li>  
+          </ul>
+        </div>
+      </li>
+		<li class="mb-1">
+        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#orders-collapse" aria-expanded="false">
+          WebSocket 模块
+        </button>
+        <div class="collapse" id="orders-collapse">
+          <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+            <li><a href="#" class="link-dark rounded">开发说明</a></li>
+            <li><a href="#" class="link-dark rounded">websocket服务</a></li>
+            <li><a href="#" class="link-dark rounded">服务推送</a></li>
+            <li><a href="#" class="link-dark rounded">推送退出机制</a></li>
+          </ul>
+        </div>
+      </li>
+	 <li class="mb-1">
+        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#orders-collapse" aria-expanded="false">
+         CLI 管理
+        </button>
+        <div class="collapse" id="orders-collapse">
+          <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+            <li><a href="#" class="link-dark rounded">CLI介绍</a></li>
+            <li><a href="#" class="link-dark rounded">MVC模式</a></li>
+            <li><a href="#" class="link-dark rounded">数据库生成模型</a></li>
+            <li><a href="#" class="link-dark rounded">视图生成</a></li>
+			<li><a href="#" class="link-dark rounded">控制器</a></li>  
+          </ul>
+        </div>
+      </li>	
+	 <li class="mb-1">
+        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#orders-collapse" aria-expanded="false">
+          框架高级应用
+        </button>
+        <div class="collapse" id="orders-collapse">
+          <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+			<li><a href="#" class="link-dark rounded">https配置</a></li>  
+			<li><a href="#" class="link-dark rounded">大型项目配置</a></li>    
+		    <li><a href="#" class="link-dark rounded">服务进程介绍</a></li>
+            <li><a href="#" class="link-dark rounded">线程池介绍</a></li>
+            <li><a href="#" class="link-dark rounded">协程应用</a></li>
+            <li><a href="#" class="link-dark rounded">安全措施</a></li>
+            <li><a href="#" class="link-dark rounded">访问日志</a></li>
+			<li><a href="#" class="link-dark rounded">多域名配置</a></li>  
+			<li><a href="#" class="link-dark rounded">泛域名解析</a></li>  
+          </ul>
+        </div>
+      </li>
+		
+      <li class="border-top my-3"></li>
+      <li class="mb-1">
+        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#account-collapse" aria-expanded="false">
+          框架历史
+        </button>
+        <div class="collapse" id="account-collapse">
+          <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+            <li><a href="#" class="link-dark rounded">修改记录</a></li>
+            <li><a href="#" class="link-dark rounded">框架使命</a></li>
+            <li><a href="#" class="link-dark rounded">加入我们</a></li>
+          </ul>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+
+    <script src="assets/dist/js/bootstrap.bundle.min.js"></script>
+	  <script src="assets/dist/js/sidebars.js"></script>
+    <link rel="stylesheet" href="plugins/highlight/styles/default.min.css">
+<script src="plugins/highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+      
+  </body>
+</html>
