@@ -1,6 +1,7 @@
 #include "httpserver.hpp"
 #include "init_deamon.hpp"
 #include <atomic>
+#include "server.h"
 /*
 mac os
 g++ forkserver.cpp vendor/httpserver/src/request.cpp vendor/httpserver/src/unicode.cpp  -std=c++20 -lboost_filesystem -lssl -lcrypto -ldl -lssl -lcrypto -ldl -lz -Ivendor/httpserver/include -I/usr/local/opt/openssl/include -L/usr/local/opt/openssl/lib  -lmysqlcppconn8 models/sms/News.cpp  -Imodels -I models/include  models/Moduleauth.cpp vendor/httpserver/src/Clientpeer.cpp vendor/httpserver/src/WebSocketparse.cpp -Iwebsockets vendor/httpserver/src/gzip.cpp vendor/httpserver/src/datetime.cpp vendor/httpserver/src/urlcode.cpp -Icontroller -Icommon vendor/httpserver/src/mysqlpool.cpp vendor/httpserver/src/httpparse.cpp vendor/httpserver/src/httpsocommonapi.cpp vendor/httpserver/src/threadlocalvariable.cpp vendor/httpserver/src/threadpool.cpp
@@ -144,16 +145,27 @@ void infoserver(){
    mainloop&  mainserverloop=  get_global<mainloop>();
    mainserverloop.server();
 }
-
-int main(int argc,char *argv[]){
-   // init_deamon(); 
-    pid_t pid,subpid=0;
-    //创建捕捉子进程退出信号
-    if(argc>1){
-            serverconfigpath=argv[1];
-    }
+void webserver(const char * arg,bool isdemon=false){
+   if(isdemon){
+        init_deamon(); 
+   } 
+   try {
     
+    serverconfigpath=arg;
+    httpserver httpmy;
+    httpmy.run();
+
+  } catch (std::exception &e) {
+    std::printf("Exception: %s\n", e.what());
+  }
+}
+void webserver_fork(const char * arg,bool isdemon=false){
+    if(isdemon){
+        init_deamon(); 
+    }
+    pid_t pid,subpid=0;    
     signal(SIGCHLD,sig_child);
+    serverconfigpath=arg;
 
       if( sigsetjmp(env_startacs, 1) == 0 ) //设置记号
         {
@@ -228,8 +240,6 @@ int main(int argc,char *argv[]){
 
         }
 
-    return 0;        
- 
 
 
 }

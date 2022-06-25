@@ -14,7 +14,7 @@
 #include <thread>
 #include <chrono>
 
-namespace HTTP
+namespace http
 { 
 
     class VISIT_LOG{

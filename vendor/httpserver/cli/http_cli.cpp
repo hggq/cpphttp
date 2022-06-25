@@ -19,8 +19,8 @@
 #include "ccontrollfun.hpp"
 #include "modelfun.hpp"
 namespace fs = std::filesystem;
-// g++ cli/http_cli.cpp -o clihttp -std=c++20 -Iinclude -lmysqlcppconn8
-//  g++-11 cli/http_cli.cpp -o clihttp -std=c++20 -Iinclude -lmysqlcppconn8 -I/usr/include/mysql-cppconn-8
+//macos  g++ vendor/httpserver/cli/http_cli.cpp -o clihttp -std=c++20 -Ivendor/httpserver/include -lmysqlcppconn8
+//ubuntu20.04  g++-11 vendor/httpserver/cli/http_cli.cpp -o clihttp -std=c++20 -Ivendor/httpserver/include -lmysqlcppconn8 -I/usr/include/mysql-cppconn-8
 int main(int argc, char *argv[]){
     std::string commandstr;
     if(argc==1){
