@@ -10,28 +10,28 @@ namespace http{
    // thread_local clientpeer* _threadclientpeer;
     void send_data(std::string name){
    
-   _threadclientpeer->send(name);
+   getthreadlocalobj().peer->send(name);
      
 }
 void send_data(std::string &name){
    
-    _threadclientpeer->send(name);
+    getthreadlocalobj().peer->send(name);
      
 }
 void send_data(unsigned int statecode,std::string name){
    
-   _threadclientpeer->send(statecode,name);
+   getthreadlocalobj().peer->send(statecode,name);
      
 }
 void send_data(unsigned int statecode,std::string &name){
    
-    _threadclientpeer->send(statecode,name);
+    getthreadlocalobj().peer->send(statecode,name);
      
 }
 
 void send_file(std::string sendfilename){
-
-      _threadclientpeer->sendfile(sendfilename);
+     getthreadlocalobj().peer->sendfile(sendfilename);
+     // _threadclientpeer->sendfile(sendfilename);
  
 }
 

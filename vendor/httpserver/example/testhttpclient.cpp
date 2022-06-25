@@ -30,7 +30,7 @@ namespace this_coro = asio::this_coro;
   asio::use_awaitable_t(__FILE__, __LINE__, __PRETTY_FUNCTION__)
 #endif
 
-//g++ testhttpclient.cpp -std=c++20  -Ivendor/httpserver/include vendor/httpserver/src/request.cpp vendor/httpserver/src/httpclient.cpp -lssl -lcrypto -ldl -I/usr/local/opt/openssl/include -L/usr/local/opt/openssl/lib -lz vendor/httpserver/src/gzip.cpp vendor/httpserver/src/urlcode.cpp
+//g++ testhttpclient.cpp -std=c++20  -Iinclude/httpserver src/httpserver/request.cpp src/httpserver/httpclient.cpp -lssl -lcrypto -ldl -I/usr/local/opt/openssl/include -L/usr/local/opt/openssl/lib -lz src/httpserver/gzip.cpp src/httpserver/urlcode.cpp
 
 int main()
 {
