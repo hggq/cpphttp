@@ -387,25 +387,36 @@ namespace http {
   }   
  void clientpeer::send(std::string &data){
        std::unique_lock<std::mutex> lock(writemutex);
-       if(isssl){
-           asio::write(https_socket.front(), asio::buffer(data));
-       }else{
-           asio::write(http_socket.front(), asio::buffer(data));
+       try{
+            if(isssl){
+                asio::write(https_socket.front(), asio::buffer(data));
+            }else{
+                asio::write(http_socket.front(), asio::buffer(data));
+            }
+       } catch (std::exception &e) {
+            lock.unlock();
        }
        lock.unlock();
   }
  void clientpeer::send(const char *data,int sendsize){
        std::unique_lock<std::mutex> lock(writemutex);
-       if(isssl){
-           asio::write(https_socket.front(), asio::buffer(data,sendsize));
-       }else{
-           asio::write(http_socket.front(), asio::buffer(data,sendsize));
+       try{
+            if(isssl){
+                asio::write(https_socket.front(), asio::buffer(data,sendsize));
+            }else{
+                asio::write(http_socket.front(), asio::buffer(data,sendsize));
+            }
+       } catch (std::exception &e) {
+            lock.unlock();
        }
        lock.unlock();
   }   
 
   void clientpeer::send(int statecode){
                     std::string outstr;
+                    if(socketclose){
+                        return;
+                    }
                     outstr.append("HTTP/1.1 ");
 
                     switch (statecode) {
@@ -433,11 +444,15 @@ namespace http {
                             
                             outstr.append("Connection: close\r\n");
                             outstr.append("\r\n");
-                            if(isssl){
-                                asio::write(https_socket.front(), asio::buffer(outstr));
-                            }else{
-                                asio::write(http_socket.front(), asio::buffer(outstr));
-                            }
+                            try{
+                                if(isssl){
+                                    asio::write(https_socket.front(), asio::buffer(outstr));
+                                }else{
+                                    asio::write(http_socket.front(), asio::buffer(outstr));
+                                }
+                             } catch (std::exception &e) {
+
+                             }
                             return;
                             break;       
                         case 200:
@@ -462,16 +477,20 @@ namespace http {
                     outstr.append("Content-Length: ");
                     outstr.append(std::to_string(_output.size()));
                     outstr.append("\r\n\r\n");
-                    //outstr.append(str);
-                    if(isssl){
-                        asio::write(https_socket.front(), asio::buffer(outstr));
-                    }else{
-                        asio::write(http_socket.front(), asio::buffer(outstr));
-                    }
-                    if(isssl){
-                        asio::write(https_socket.front(), asio::buffer(_output));
-                    }else{
-                        asio::write(http_socket.front(), asio::buffer(_output));
+                    
+                    try{
+                        if(isssl){
+                            asio::write(https_socket.front(), asio::buffer(outstr));
+                        }else{
+                            asio::write(http_socket.front(), asio::buffer(outstr));
+                        }
+                        if(isssl){
+                            asio::write(https_socket.front(), asio::buffer(_output));
+                        }else{
+                            asio::write(http_socket.front(), asio::buffer(_output));
+                        }
+                    } catch (std::exception &e) {
+                            
                     }
                 } 
 
@@ -479,7 +498,9 @@ namespace http {
                 void clientpeer::send(unsigned int statecode,std::string &str){
                     std::string outstr;
                     outstr.append("HTTP/1.1 ");
-
+                    if(socketclose){
+                        return;
+                    }
                     switch (statecode) {
                         case 500:
                             outstr.append("500 Internal Server Error\r\n");
@@ -505,10 +526,14 @@ namespace http {
                             
                             outstr.append("Connection: close\r\n");
                             outstr.append("\r\n");
-                            if(isssl){
-                                asio::write(https_socket.front(), asio::buffer(outstr));
-                            }else{
-                                asio::write(http_socket.front(), asio::buffer(outstr));
+                            try{
+                                if(isssl){
+                                    asio::write(https_socket.front(), asio::buffer(outstr));
+                                }else{
+                                    asio::write(http_socket.front(), asio::buffer(outstr));
+                                }
+                            } catch (std::exception &e) {
+
                             }
                             return;
                             break;       
@@ -535,20 +560,30 @@ namespace http {
                     outstr.append(std::to_string(str.size()));
                     outstr.append("\r\n\r\n");
                     //outstr.append(str);
-                    if(isssl){
-                        asio::write(https_socket.front(), asio::buffer(outstr));
-                    }else{
-                        asio::write(http_socket.front(), asio::buffer(outstr));
+                    
+                    try{
+                        if(isssl){
+                            asio::write(https_socket.front(), asio::buffer(outstr));
+                        }else{
+                            asio::write(http_socket.front(), asio::buffer(outstr));
+                        }
+                        if(isssl){
+                            asio::write(https_socket.front(), asio::buffer(str));
+                        }else{
+                            asio::write(http_socket.front(), asio::buffer(str));
+                        }
+                        
+                     } catch (std::exception &e) {
+
                     }
-                    if(isssl){
-                        asio::write(https_socket.front(), asio::buffer(str));
-                    }else{
-                        asio::write(http_socket.front(), asio::buffer(str));
-                    }
+                  
                 } 
 
                 void clientpeer::send(int statecode,std::string &&str){
                     std::string outstr;
+                     if(socketclose){
+                        return;
+                    }
                     outstr.append("HTTP/1.1 ");
 
                     switch (statecode) {
@@ -576,11 +611,15 @@ namespace http {
                             
                             outstr.append("Connection: close\r\n");
                             outstr.append("\r\n");
-                            if(isssl){
-                                asio::write(https_socket.front(), asio::buffer(outstr));
-                            }else{
-                                asio::write(http_socket.front(), asio::buffer(outstr));
-                            }
+                            try{
+                                if(isssl){
+                                    asio::write(https_socket.front(), asio::buffer(outstr));
+                                }else{
+                                    asio::write(http_socket.front(), asio::buffer(outstr));
+                                }
+                             } catch (std::exception &e) {
+                            
+                             }
                             return;
                             break;       
                         case 200:
@@ -606,22 +645,28 @@ namespace http {
                     outstr.append(std::to_string(str.size()));
                     outstr.append("\r\n\r\n");
                     //outstr.append(str);
-                    if(isssl){
-                        asio::write(https_socket.front(), asio::buffer(outstr));
-                    }else{
-                        asio::write(http_socket.front(), asio::buffer(outstr));
-                    }
-                    if(isssl){
-                        asio::write(https_socket.front(), asio::buffer(str));
-                    }else{
-                        asio::write(http_socket.front(), asio::buffer(str));
+                    try{
+                        if(isssl){
+                            asio::write(https_socket.front(), asio::buffer(outstr));
+                        }else{
+                            asio::write(http_socket.front(), asio::buffer(outstr));
+                        }
+                        if(isssl){
+                            asio::write(https_socket.front(), asio::buffer(str));
+                        }else{
+                            asio::write(http_socket.front(), asio::buffer(str));
+                        }
+                     } catch (std::exception &e) {
+                            
                     }
                 } 
 
  void clientpeer::sendfile(std::string sendfile_name){
  
                  std::string sendfileinfo;
-
+                  if(socketclose){
+                        return;
+                 }
                  if(globalconfig!=nullptr){
                          auto configiter=globalconfig->find(header->host);
                         if(configiter!=globalconfig->end()){
@@ -661,25 +706,32 @@ namespace http {
                     fseek(ff, 0, SEEK_SET);
                     sendheader(200,mustnum+_output.size());   
 
-                    if(_output.size()>0){  
-                          if(isssl){
-                                asio::write(https_socket.front(), asio::buffer(_output));
-                            }else{
-                                asio::write(http_socket.front(), asio::buffer(_output));
-                            }       
-
+                    try{
+                        if(_output.size()>0){  
+                            if(isssl){
+                                    asio::write(https_socket.front(), asio::buffer(_output));
+                                }else{
+                                    asio::write(http_socket.front(), asio::buffer(_output));
+                                }       
+                        }
+                    } catch (std::exception &e) {
+                            
                     }
-                                                                
-                    while(readnum<mustnum){
+                    try{
+
+                        while(readnum<mustnum){
                             memset(_data,0x00,2048);
                             auto nread =fread(&_data[0], 1,2048, ff);
                             
                             if(isssl){
-                                    asio::write(https_socket.front(), asio::buffer(_data,nread));
-                                }else{
-                                    asio::write(http_socket.front(),asio::buffer(_data,nread));
+                                asio::write(https_socket.front(), asio::buffer(_data,nread));
+                            }else{
+                                asio::write(http_socket.front(),asio::buffer(_data,nread));
                                 }
-                            readnum+=nread;
+                                readnum+=nread;
+                        }
+                    } catch (std::exception &e) {
+                            
                     }
                     fclose(ff);
                     vobj.set_int();
@@ -691,6 +743,9 @@ namespace http {
 
  void clientpeer::sendheader(unsigned int statecode,unsigned long long contentlength=0){
                     std::string outstr;
+                     if(socketclose){
+                        return;
+                    }
                     outstr.append("HTTP/1.1 ");
 
                     switch (statecode) {
@@ -716,10 +771,14 @@ namespace http {
                             
                             outstr.append("Connection: close\r\n");
                             outstr.append("\r\n");
-                            if(isssl){
-                                asio::write(https_socket.front(), asio::buffer(outstr));
-                            }else{
-                                asio::write(http_socket.front(), asio::buffer(outstr));
+                            try{
+                                if(isssl){
+                                    asio::write(https_socket.front(), asio::buffer(outstr));
+                                }else{
+                                    asio::write(http_socket.front(), asio::buffer(outstr));
+                                }
+                            } catch (std::exception &e) {
+                            
                             }
                             return;
                             break;    
@@ -745,11 +804,14 @@ namespace http {
                     outstr.append("Content-Length: ");
                     outstr.append(std::to_string(contentlength));
                     outstr.append("\r\n\r\n");
-                    
-                    if(isssl){
-                        asio::write(https_socket.front(), asio::buffer(outstr));
-                    }else{
-                        asio::write(http_socket.front(), asio::buffer(outstr));
+                    try{
+                        if(isssl){
+                            asio::write(https_socket.front(), asio::buffer(outstr));
+                        }else{
+                            asio::write(http_socket.front(), asio::buffer(outstr));
+                        }
+                    } catch (std::exception &e) {
+                            
                     }
                 }
 
@@ -1144,15 +1206,24 @@ namespace http {
                                 parentpath.append("Cache-Control: max-age=15\r\nContent-length: "+std::to_string(senddatastring.size())+"\r\n\r\n");
                                 parentpath.append(senddatastring); 
                         
+                        if(socketclose){
+                            return;
+                        }
+                        try{
                             if(isssl){
-                            asio::write(https_socket.front(), asio::buffer(parentpath));
-                        }else{
-                            asio::write(http_socket.front(),asio::buffer(parentpath));
+                                asio::write(https_socket.front(), asio::buffer(parentpath));
+                            }else{
+                                asio::write(http_socket.front(),asio::buffer(parentpath));
+                            }
+                        } catch (std::exception &e) {
+                            
                         }
                                          
                 }
                 void clientpeer::sendfileto(){
-                           
+                                     if(socketclose){
+                                        return;
+                                    }
                                     if(fileexttype.size()>0){
                                         http::mime mime;
                                         mimetype=mime._map[fileexttype];
@@ -1189,11 +1260,14 @@ namespace http {
                                                                 keeplive=false;
                                                             }
                                                         senddatastring.append("Keep-Alive: timeout=5, max="+std::to_string(keeplivemax)+"\r\nLast-Modified: "+http::getGmtTime((unsigned long long)fileinfo.st_mtime)+"\r\nETag: \""+etag+"\"\r\n\r\n"); 
-                                                         
-                                                        if(isssl){
-                                                            asio::write(https_socket.front(), asio::buffer(senddatastring));
-                                                        }else{
-                                                            asio::write(http_socket.front(),asio::buffer(senddatastring));
+                                                        try{ 
+                                                            if(isssl){
+                                                                asio::write(https_socket.front(), asio::buffer(senddatastring));
+                                                            }else{
+                                                                asio::write(http_socket.front(),asio::buffer(senddatastring));
+                                                            }
+                                                        } catch (std::exception &e) {
+                            
                                                         }
                                                         return;
 
@@ -1208,11 +1282,14 @@ namespace http {
                                                                 keeplive=false;
                                                             }
                                                         senddatastring.append("Keep-Alive: timeout=5, max="+std::to_string(keeplivemax)+"\r\nLast-Modified: "+http::getGmtTime((unsigned long long)fileinfo.st_mtime)+"\r\nETag: \""+etag+"\"\r\n\r\n");  
-                                                         
-                                                        if(isssl){
-                                                            asio::write(https_socket.front(), asio::buffer(senddatastring));
-                                                        }else{
-                                                            asio::write(http_socket.front(),asio::buffer(senddatastring));
+                                                        try{ 
+                                                            if(isssl){
+                                                                asio::write(https_socket.front(), asio::buffer(senddatastring));
+                                                            }else{
+                                                                asio::write(http_socket.front(),asio::buffer(senddatastring));
+                                                            }
+                                                        } catch (std::exception &e) {
+                            
                                                         }
                                                         return ;
                                             }
@@ -1280,16 +1357,19 @@ namespace http {
                                                                             senddatastring.append("Content-Encoding: gzip\r\n");
                                                                             senddatastring.append("Keep-Alive: timeout=5, max="+std::to_string(keeplivemax)+"\r\nCache-Control: max-age=691200\r\nContent-length: "+std::to_string(out_compress.size())+"\r\n\r\n");//+lm;
                                                                             unsigned long long sendsize=0;
-                        
-                                                                                if(isssl){
-                                                                                    asio::write(https_socket.front(), asio::buffer(senddatastring));
-                                                                                }else{
-                                                                                    asio::write(http_socket.front(),asio::buffer(senddatastring));
-                                                                                }
-                                                                            if(isssl){
-                                                                                    asio::write(https_socket.front(), asio::buffer(out_compress));
-                                                                                }else{
-                                                                                    asio::write(http_socket.front(),asio::buffer(out_compress));
+                                                                            try{
+                                                                                    if(isssl){
+                                                                                        asio::write(https_socket.front(), asio::buffer(senddatastring));
+                                                                                    }else{
+                                                                                        asio::write(http_socket.front(),asio::buffer(senddatastring));
+                                                                                    }
+                                                                                    if(isssl){
+                                                                                        asio::write(https_socket.front(), asio::buffer(out_compress));
+                                                                                    }else{
+                                                                                        asio::write(http_socket.front(),asio::buffer(out_compress));
+                                                                                    }
+                                                                                } catch (std::exception &e) {
+                            
                                                                                 }
                                                                             out_compress.clear();
 
@@ -1321,24 +1401,30 @@ namespace http {
                                                                 senddatastring.append("Keep-Alive: timeout=5, max="+std::to_string(keeplivemax)+"\r\nCache-Control: max-age=691200\r\nContent-length: "+std::to_string(size)+"\r\n\r\n");//+lm;
                                                                 unsigned long long sendsize=0;
             
-                                                            
-                                                                if(isssl){
-                                                                                asio::write(https_socket.front(), asio::buffer(senddatastring));
-                                                                            }else{
-                                                                                asio::write(http_socket.front(),asio::buffer(senddatastring));
-                                                                            }
-                                                                
-                                                                while(sendsize<size){
-                                                                        memset(_data,0x00,2048);
-                                                                        auto nread =fread(&_data[0], 1,2048, ff);
-                                                                         
-                                                                        if(isssl){
-                                                                                asio::write(https_socket.front(), asio::buffer(_data,nread));
-                                                                            }else{
-                                                                                asio::write(http_socket.front(),asio::buffer(_data,nread));
-                                                                            }
-                                
-                                                                        sendsize+=nread;
+                                                                try{
+                                                                    if(isssl){
+                                                                        asio::write(https_socket.front(), asio::buffer(senddatastring));
+                                                                    }else{
+                                                                        asio::write(http_socket.front(),asio::buffer(senddatastring));
+                                                                    }
+                                                                } catch (std::exception &e) {
+                                                                    
+                                                                }
+                                                                try{
+                                                                    while(sendsize<size){
+                                                                            memset(_data,0x00,2048);
+                                                                            auto nread =fread(&_data[0], 1,2048, ff);
+                                                                            
+                                                                            if(isssl){
+                                                                                    asio::write(https_socket.front(), asio::buffer(_data,nread));
+                                                                                }else{
+                                                                                    asio::write(http_socket.front(),asio::buffer(_data,nread));
+                                                                                }
+                                    
+                                                                            sendsize+=nread;
+                                                                    }
+                                                                } catch (std::exception &e) {
+                            
                                                                 }
                                                                 fclose(ff);       
                                                                     
@@ -1363,10 +1449,14 @@ namespace http {
                                                                         statecode=416;
                                                                         senddatastring="HTTP/1.1 416 Range Not Satisfiable\r\nDate:"+http::getGmtTime()+"\r\nConnection: close\r\nCache-Control: max-age=0\r\nContent-length: 0\r\n\r\n";
                                                                         keeplive=false;
-                                                                        if(isssl){
-                                                                            asio::write(https_socket.front(), asio::buffer(senddatastring));
-                                                                        }else{
-                                                                            asio::write(http_socket.front(),asio::buffer(senddatastring));
+                                                                        try{
+                                                                            if(isssl){
+                                                                                asio::write(https_socket.front(), asio::buffer(senddatastring));
+                                                                            }else{
+                                                                                asio::write(http_socket.front(),asio::buffer(senddatastring));
+                                                                            }
+                                                                        } catch (std::exception &e) {
+                            
                                                                         }
                                                                         fclose(ff);
                                                                         return;
@@ -1409,25 +1499,31 @@ namespace http {
                                                                     
                                                                 }
                                                                 // unsigned long long sendsize=0;
-                                                            
-                                                                if(isssl){
-                                                                    asio::write(https_socket.front(), asio::buffer(senddatastring));
-                                                                }else{
-                                                                    asio::write(http_socket.front(),asio::buffer(senddatastring));
+                                                                try{
+                                                                    if(isssl){
+                                                                        asio::write(https_socket.front(), asio::buffer(senddatastring));
+                                                                    }else{
+                                                                        asio::write(http_socket.front(),asio::buffer(senddatastring));
+                                                                    }
+                                                                } catch (std::exception &e) {
+                            
                                                                 }
                                                                 fseek(ff, readnum, SEEK_SET);
-                                                                 
-                                                                while(readnum<mustnum){
+                                                                try{ 
+                                                                    while(readnum<mustnum){
                                                                         memset(_data,0x00,2048);
                                                                         auto nread =fread(&_data[0], 1,2048, ff);
                                                                         
                                                                         if(isssl){
-                                                                                asio::write(https_socket.front(), asio::buffer(_data,nread));
-                                                                            }else{
-                                                                                asio::write(http_socket.front(),asio::buffer(_data,nread));
-                                                                            }
-                                
+                                                                            asio::write(https_socket.front(), asio::buffer(_data,nread));
+                                                                        }else{
+                                                                            asio::write(http_socket.front(),asio::buffer(_data,nread));
+                                                                        }
+                                    
                                                                         readnum+=nread;
+                                                                    }
+                                                                } catch (std::exception &e) {
+                            
                                                                 }
                                                              fclose(ff);
                                                      }else{

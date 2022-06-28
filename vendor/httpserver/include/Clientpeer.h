@@ -139,7 +139,8 @@ public:
   unsigned short remote_port;   
 
   std::string local_ip;
-  unsigned short local_port;        
+  unsigned short local_port;    
+  bool socketclose=false;    
 };
 }
 #endif 

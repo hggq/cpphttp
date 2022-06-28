@@ -311,6 +311,7 @@ public:
     peer->getremoteport();
     peer->getlocalip();
     peer->getlocalport();
+    peer->socketclose=false;
     serverconfig&  sysconfigpath=  getserversysconfig();
     for (;;) {
         peer->header->clear();
@@ -452,7 +453,7 @@ public:
       }
     } catch (std::exception &e) {
       std::printf("clientpeer : %s\n", e.what());
- 
+      peer->socketclose=true;
     }
   }
 
@@ -750,7 +751,7 @@ public:
               }catch (std::exception& e)
             {
               //std::cout<<" watch http "<<e.what() << std::endl;
-              io_context.stop();  
+              io_c.stop();  
               
               break;
             }

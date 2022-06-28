@@ -21,6 +21,8 @@
 #include <condition_variable>
 #include "mysqlcommit.hpp"
 #include "mysqlproxyfun.h"
+#include "framedatacache.h"
+
 using namespace http;
 namespace orm {
         //通用操作 类 mysql 方法 在这里接上getSession(); 这里可以操作 data sql count page 
@@ -100,6 +102,11 @@ class mysqlclientDB: public base {
      model& select(std::string fieldname)
     {
         selectsql=fieldname;
+         return *mod;
+    }
+   model& cache(unsigned int livetime)
+    {
+        cachetime=livetime;
          return *mod;
     }
      model& where(std::string wq){
@@ -1056,6 +1063,7 @@ class mysqlclientDB: public base {
     } 
      model& fetch()
     {
+        unsigned long long sqlhashid=0; 
         if(selectsql.empty()){
             sqlstring="SELECT *  FROM ";
         }else{
@@ -1082,37 +1090,59 @@ class mysqlclientDB: public base {
              sqlstring.append(limitsql);
         }
         base::record.clear();
- 
+        
+        if(cachetime>0){
+           sqlhashid=std::hash<std::string>{}(sqlstring); 
+           if(getcacherecord(sqlhashid)){
+                cachetime=0;
+                return *mod;
+           } 
+        }
+
         res = domysqlexecute(sqlstring,dbhash);
         const mysqlx::Columns &columns = res.getColumns();
         base::_keypos.clear();
         if(selectsql.empty()){
-             for (unsigned char index=0; index < res.getColumnCount(); index++)
+            for (unsigned char index=0; index < res.getColumnCount(); index++)
             {       
-                        base::_keypos.emplace_back(index);                
+                    base::_keypos.emplace_back(index);                
             }
         }else{
-                 for (unsigned char index=0; index < res.getColumnCount(); index++)
-                {       
-                   base::_keypos.emplace_back(base::findcolpos(columns[index].getColumnName()));  
-           
-                }
-        }
-        
-               int j=0;
-                while ((base::_row = res.fetchOne()))
-                {
-                    if(j==0){
-                        base::_setColnamevalue();
-                    }else{
-                        
-                        base::_addnewrowvalue();
-                    }
-                    j++;
-                     
-                }
+            for (unsigned char index=0; index < res.getColumnCount(); index++)
+            {       
+                base::_keypos.emplace_back(base::findcolpos(columns[index].getColumnName()));  
 
+            }
+        }
+
+        int j=0;
+        while ((base::_row = res.fetchOne()))
+        {
+            if(j==0){
+                base::_setColnamevalue();
+            }else{
+                
+                base::_addnewrowvalue();
+            }
+            j++;
+                
+        }
+         if(cachetime>0){
+            if(sqlhashid==0){
+                sqlhashid=std::hash<std::string>{}(sqlstring); 
+            }
+            savecacherecord(sqlhashid);     
+            cachetime=0;
+         }
          return *mod;
+    }
+    bool getcacherecord(unsigned long long cacheid){
+
+            return false;
+    }
+    bool savecacherecord(unsigned long long cacheid){
+             
+            return true;
     }
     http::OBJ_VALUE fetchOBJ()
     {
@@ -1475,6 +1505,8 @@ class mysqlclientDB: public base {
         std::hash<std::string> hash_fn;
         mysqlx::RowResult res;
         mysqlx::SqlResult ses;
+
+        unsigned int cachetime=0;
     };
 
 }
