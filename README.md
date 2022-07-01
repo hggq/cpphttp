@@ -201,11 +201,9 @@ public:
 ```
 Roadmap
 -----------------
-1 websocket client
-
-2 http/2
-
-3 postgres orm
+1. websocket client
+2. http/2
+3. postgres orm
 
 
 LICENSE
