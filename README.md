@@ -5,7 +5,7 @@ c++ http web 框架
 介绍
 ---------------
 
-cpphttp web framework 框架是一个全面、快速web开发框架，开发速度跟脚本语言一样，框架集成了webserver,自己原生解析http1.1协议，GET、POST全部解析出来，POST几种方式都解析出来了，框架自带了一个OBJ 微型对象，可以存放char int string float等，框架自动解析URL，POST参数到微型对象里面，模仿了php风格使用方式。
+cpphttp web framework 框架是一个全面、快速web开发框架，开发速度跟PHP脚本语言一样，框架集成了webserver,自己原生解析http1.1协议，GET、POST全部解析出来，POST几种方式都解析出来了，框架自带了一个OBJ 微型对象，可以存放char int string float等，框架自动解析URL，POST参数到微型对象里面，模仿了PHP风格使用方式。
 
 
 特性
