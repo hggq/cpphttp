@@ -2,22 +2,26 @@ c++ http web framework
 
 c++ http web 框架
 
-支持多域名网站
-支持多域名ssl 服务端
+介绍
+---------------
 
-支持http1.1协议
-支持websocket服务端
-支持同步httpclient get post
+cpphttp web framework 框架是一个全面、快速web开发框架，开发速度跟脚本语言一样，框架集成了webserver,自己原生解析http1.1协议，GET、POST全部解析出来，POST几种方式都解析出来了，框架自带了一个OBJ 微型对象，可以存放char int string float等，框架自动解析URL，POST参数到微型对象里面，模仿了php风格使用方式。
 
-框架自带ORM 
-框架自带线程池
 
-框架自带websocket推送
-框架使用asio自带的协程
+特性
+--------------
 
-框架特色是I/O 使用协程池 运行使用线程池
-
-框架支持普通文件gzip
+1. 支持多域名网站
+2. 支持多域名ssl 服务端
+3. 支持http1.1协议
+4. 支持websocket服务端
+5. 支持同步httpclient get post
+6. 框架自带ORM 
+7. 框架自带线程池
+8. 框架自带websocket推送
+9. 框架使用asio自带的协程
+10. 框架特色是I/O 使用协程池 运行使用线程池
+11. 框架支持普通文件gzip
 
 
 ---------------------
