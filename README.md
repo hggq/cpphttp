@@ -203,7 +203,7 @@ Roadmap
 -----------------
 1. websocket client
 2. http/2
-3. postgres orm
+3. postgres sql orm
 
 
 LICENSE
