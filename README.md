@@ -14,7 +14,7 @@ cpphttp web framework 框架是一个全面、快速web开发框架，开发速�
 1. 支持多域名网站
 2. 支持多域名ssl 服务端
 3. 支持http1.1协议
-4. 支持websocket服务端
+4. 支持websocket服务端，支持定时推送到webscoket客户端
 5. 支持同步httpclient get post
 6. 框架自带ORM,使用链接池方式 
 7. 框架自带线程池
