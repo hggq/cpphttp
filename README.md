@@ -205,9 +205,10 @@ public:
 ```
 Roadmap
 -----------------
-1. websocket client
-2. http/2
-3. postgres,sqlite orm
+1. Improved http features
+2. websocket client
+3. http/2
+4. postgres,sqlite orm
 
 
 LICENSE
